@@ -1,0 +1,36 @@
+arr=list(map(int,input().split()))
+
+input ek string type ka hoga, usko split krdo toh wo list of substring
+
+map applies int() to each ele of list
+The map() function returns an iterator
+
+--------------------------------------
+You're right that int is a type in Python, 
+but it also behaves like a function when used in certain contexts. 
+In Python, types like int, float, and str can be called as functions 
+because they have constructors that convert values into that type.
+Why int Works in map(int, iterable)
+- int("10") → The int type is callable, 
+meaning you can use it like a function to convert a string "10" into an integer 10.
+- When passed to map(int, iterable), 
+Python applies int() to each item in the iterable,
+effectively calling int(item) for each element.
+
+----------------------------------
+How to Know If Something Can Be Converted to a List
+Most iterables can be converted into a list, but not everything. Here are common examples:
+✅ Can be converted to a list:
+- map() → list(map(int, ["1", "2", "3"])) → [1, 2, 3]
+- range() → list(range(5)) → [0, 1, 2, 3, 4]
+- zip() → list(zip([1, 2], ["a", "b"])) → [(1, 'a'), (2, 'b')]
+- dict.keys() → list({"a": 1, "b": 2}.keys()) → ['a', 'b']
+
+----------------------------
+can use for loop of ele instead of list too:
+
+numbers = ["1", "2", "3", "4"]
+mapped_result = map(int, numbers)  # Iterator
+
+for num in mapped_result:
+    print(num)  # Prints each converted integer one by one

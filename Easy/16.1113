@@ -10,8 +10,7 @@ Table: Actions
 | action        | enum    |
 | extra         | varchar |
 +---------------+---------+
-There is no primary key for this table, it may have duplicate rows.
-The action column is an ENUM type of ('view', 'like', 'reaction', 'comment', 'report', 'share').
+
 The extra column has optional information about the action such as a reason for report or a type of reaction. 
  
 
@@ -75,6 +74,6 @@ result_df=actions_df.filter(
     )/
     .groupBy("extra")\ 
     .agg(countDistinct("post_id").alias("report_count"))\
-    .withColumnRenamed("extra","report_count")
+    .withColumnRenamed("extra","report_reason")
 
 result_df.show()

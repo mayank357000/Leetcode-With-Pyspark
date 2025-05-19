@@ -1,0 +1,125 @@
+Object-Oriented Programming (OOP) Differences
+✔ Class definition:
+- Python: class Animal:
+✔ Instance variables:
+- Python: self.name = "Tiger"
+✔ Constructor:
+- Python: def __init__(self, name):
+✔ Static methods:
+- Python: @staticmethod(using decorator, wrapper over a function)
+✔ Class methods:
+- Python: @classmethod
+✔ Inheritance:
+- Python: class Child(Parent)
+
+Python:
+class Animal:
+    def __init__(self, name):
+        self.name = name
+
+    def speak(self):
+        print(f"I am {self.name}")
+
+
+2️⃣ Data Structures
+✔ List vs. ArrayList:
+- Python: list = []
+✔ Dictionary vs. HashMap:
+- Python: dict = {}
+✔ Deque vs. LinkedList:
+- Python: collections.deque()
+
+from collections import deque
+
+dq = deque([1, 2, 3])
+dq.append(4)      # [1, 2, 3, 4]
+dq.popleft()      # [2, 3, 4]
+
+, can be used for stack and queue too
+
+
+3️⃣ Iterables vs. Iterators
+✔ Iterable: Lists, tuples → Supports for loops
+✔ Iterator: Generated on demand → Has __iter__() & __next__()
+🔹 Example: Iterable vs. Iterator
+
+
+# Iterable (List)
+my_list = [1, 2, 3]
+for num in my_list:
+    print(num)
+
+# Iterator (Map Object)
+mapped = map(str, [1, 2, 3])
+print(next(mapped))  # "1"
+print(next(mapped))  # "2"
+
+Generators & Decorators
+✔ Generator: Uses yield → Saves memory
+✔ Decorator: Wraps functions dynamically
+🔹 Example: Python Generator
+# Generator
+def generate_numbers():
+    yield 1
+    yield 2
+    yield 3
+
+g = generate_numbers()
+print(next(g))  # 1
+
+
+🔹 Example: Python Decorator
+def decorator(func):
+    def wrapper():
+        print("Before")
+        func()
+        print("After")
+    return wrapper #returned a function too, so that when normal function called, then wrapper called too
+
+@decorator  #name fo the function with annoation symbol above the function which needs decorator function wrapping
+def say_hello():
+    print("Hello")
+
+say_hello()
+
+same as doing this: 
+def greet():
+    print("Hello!")
+
+greet = my_decorator(greet)  # ✅ Manually wrapping the function
+greet()  # ✅ Calls the modified function
+
+
+
+5️⃣ Named Arguments & *args, **kwargs
+✔ Named arguments:
+- func(name="Alice", age=30) → Order doesn’t matter
+✔ *args (positional arguments):
+- Collects multiple arguments as a tuple
+✔ **kwargs (named keyword arguments):
+- Collects multiple keyword arguments as a dictionary
+🔹 Example: Named Arguments
+def greet(name, age):
+    print(f"Hello, {name}. You are {age} years old.")
+
+greet(name="Alice", age=30)  # ✅ Named arguments
+greet(age=25, name="Bob")  # ✅ Works in any order
+
+
+🔹 Example: Using *args(tuple) and **kwargs(dictionary) Together
+def example_function(*args, **kwargs):
+    print(f"Positional args: {args}")
+    print(f"Keyword args: {kwargs}")
+
+example_function(10, 20, name="Alice", age=30)
+
+
+tuple, are list but immuatable, can't change t[0]=99 won't work or append remove also not
+#
+t = (10, 20, 30, 40)
+
+# Access by index
+print(t[0])  # ✅ Output: 10
+
+Yes! Tuples can be used as dictionary keys, but lists cannot.
+tupel can be added in set, but not list as they can change overtime
