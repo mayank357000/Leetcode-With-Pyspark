@@ -103,3 +103,75 @@ Alice attended the Math exam 3 times, the Physics exam 2 times, and the Programm
 Bob attended the Math exam 1 time, the Programming exam 1 time, and did not attend the Physics exam.
 Alex did not attend any exams.
 John attended the Math exam 1 time, the Physics exam 1 time, and the Programming exam 1 time.
+
+
+-----------------------------------------------
+
+with cte1 as (
+    select * from students cross join subjects
+),
+cte2 as (
+    select student_id,subject_name, count(*) as count from examinations group by student_id,subject_name
+)
+select cte1.student_id,cte1.student_name,cte1.subject_name,ifnull(count,0) as attended_exams from
+cte1 left join cte2 on cte1.student_id=cte2.student_id and cte1.subject_name=cte2.subject_name order by cte1.student_id,cte1.subject_name;
+
+--------------------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import count, col, coalesce, lit
+
+spark = SparkSession.builder.appName("StudentsAndExaminations").getOrCreate()
+
+students_data = [
+    (1, "Alice"),
+    (2, "Bob"),
+    (13, "John"),
+    (6, "Alex")
+]
+students_columns = ["student_id", "student_name"]
+
+subjects_data = [
+    ("Math",),
+    ("Physics",),
+    ("Programming",)
+]
+subjects_columns = ["subject_name"]
+
+examinations_data = [
+    (1, "Math"),
+    (1, "Physics"),
+    (1, "Programming"),
+    (2, "Programming"),
+    (1, "Physics"),
+    (1, "Math"),
+    (13, "Math"),
+    (13, "Programming"),
+    (13, "Physics"),
+    (2, "Math"),
+    (1, "Math")
+]
+examinations_columns = ["student_id", "subject_name"]
+
+students_df = spark.createDataFrame(students_data, students_columns)
+subjects_df = spark.createDataFrame(subjects_data, subjects_columns)
+examinations_df = spark.createDataFrame(examinations_data, examinations_columns)
+
+all_combinations_df = students_df.crossJoin(subjects_df)
+#crossJoin has different syntax, no condition and type
+
+exam_counts_df = examinations_df.groupBy("student_id", "subject_name") \
+    .agg(count("*").alias("attended_exams"))
+
+result_df = all_combinations_df.join(
+    exam_counts_df,
+    on=["student_id", "subject_name"],
+    how="left"
+).select(
+    col("student_id"),
+    col("student_name"),
+    col("subject_name"),
+    coalesce(col("attended_exams"), lit(0)).alias("attended_exams")
+).orderBy("student_id", "subject_name")
+
+result_df.show()
