@@ -106,7 +106,7 @@ greet(name="Alice", age=30)  # ✅ Named arguments
 greet(age=25, name="Bob")  # ✅ Works in any order
 
 
-🔹 Example: Using *args(tuple) and **kwargs(dictionary) Together
+🔹 Example: Using *args(is a tuple) and **kwargs(is a dictionary) Together
 def example_function(*args, **kwargs):
     print(f"Positional args: {args}")
     print(f"Keyword args: {kwargs}")
@@ -114,7 +114,7 @@ def example_function(*args, **kwargs):
 example_function(10, 20, name="Alice", age=30)
 
 
-tuple, are list but immuatable, can't change t[0]=99 won't work or append remove also not
+tuple, are same as list but immutable, can't change t[0]=99 won't work or append remove also not
 #
 t = (10, 20, 30, 40)
 
@@ -122,4 +122,4 @@ t = (10, 20, 30, 40)
 print(t[0])  # ✅ Output: 10
 
 Yes! Tuples can be used as dictionary keys, but lists cannot.
-tupel can be added in set, but not list as they can change overtime
+tuple can be added in set, but not list as they can change overtime

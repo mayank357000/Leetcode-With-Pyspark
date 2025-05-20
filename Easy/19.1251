@@ -1,0 +1,54 @@
+SELECT 
+    p.firstName, 
+    p.lastName, 
+    a.city, 
+    a.state
+FROM Person p
+LEFT JOIN Address a
+    ON p.personId = a.personId;
+
+---------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+
+# Initialize Spark Session
+spark = SparkSession.builder.appName("CombineTwoTables").getOrCreate()
+
+# Sample Data, list of tuples 
+person_data = [
+    (1, "Wang", "Allen"),
+    (2, "Alice", "Bob")
+]
+person_columns = ["personId", "lastName", "firstName"]
+
+address_data = [
+    (1, 2, "New York City", "New York"),
+    (2, 3, "Leetcode", "California")
+]
+address_columns = ["addressId", "personId", "city", "state"]
+
+person_df = spark.createDataFrame(person_data, schema=person_columns)
+address_df = spark.createDataFrame(address_data, schema=address_columns)
+
+result_df = person_df.join(
+    address_df,
+    person_df.personId == address_df.personId,
+    "left"
+).select(
+    person_df.firstName,
+    person_df.lastName,
+    address_df.city,
+    address_df.state
+)
+
+OR
+
+.select(
+    person_df["firstName"],
+    person_df["lastName"],
+    address_df["city"],
+    address_df["state"]
+)
+
+result_df.show()
