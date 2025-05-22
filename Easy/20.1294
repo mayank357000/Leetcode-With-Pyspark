@@ -149,10 +149,12 @@ weather_df = spark.createDataFrame(weather_data, weather_columns)
 
 weather_df = weather_df.withColumn("day", to_date(col("day"), "yyyy-MM-dd"))
 
+#to_date(col(),"datetype")
+
 weather_nov_df = weather_df.filter(
     (year(col("day")) == 2019) & (month(col("day")) == 11)
 )
-#else for string col and not coverting it to date 
+#else for string col and not converting it to date 
 #we can use: weather_df = weather_df.filter(
 #    (col("day").substr(1, 4) == "2019") & (col("day").substr(6, 2) == "11")
 #)

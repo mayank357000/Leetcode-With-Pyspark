@@ -1,0 +1,23 @@
+select u.name as name,ifnull(sum(distance),0) as travelled_distance
+from Users u left join rides r on u.id=r.user_id
+group by u.id,u.name
+order by travelled_distance desc,name asc;
+
+-------------------------------------
+
+from pyspark.sql.functions import sum, col, coalesce
+
+result_df = u_df.join(r_df, u_df.id == r_df.user_id, how="left") \
+    .groupBy(u_df.id, u_df.name) \
+    .agg(coalesce(sum(r_df.distance), col("0")).alias("travelled_distance")) \
+    .orderBy(col("travelled_distance").desc(), u_df.name.asc())
+
+-- #can use df_name.column for columns that exist in the original DataFrame (like u_df.name or u_df.id) before or during transformations such as join, groupBy, and select.
+
+-- #However, for new columns created by aggregation or withColumn (like your alias "travelled_distance"), you must use col("travelled_distance")
+
+-- #can rename df if want to use col() only
+-- u = u_df.alias("u")
+-- r = r_df.alias("r")
+-- result_df = u.join(r, u.id == r.user_id, "left")
+-- result_df.orderBy(col("u.name").desc())

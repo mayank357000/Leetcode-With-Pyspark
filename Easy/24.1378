@@ -1,0 +1,15 @@
+SELECT 
+    euni.unique_id,
+    e.name
+FROM Employees e
+LEFT JOIN EmployeeUNI euni
+    ON e.id = euni.id;
+
+------------------------------------
+
+from pyspark.sql.functions import col
+
+result_df=e_df.join(u_df,on="id","left")\
+    .select(u_df.unique_id,e_df.name)
+
+result_df.show()

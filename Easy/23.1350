@@ -99,5 +99,5 @@ invalid_dept_ids = [row.id for row in s_df.select("department_id").distinct().co
 result_df = s_df.filter(col("department_id").isin(invalid_dept_ids)) \
     .select("id", "name")
 
-#col.isin(python list(so use .collect() to make list from df)) to check values, returns true,false, used for filter  
+#col.isin(python list as input, (so use .collect() to make list from df)) to check values, returns true,false, used for filter  
 #df.filter(~col("department_id").isin([1, 7, 13])), NOT IN LOGIC

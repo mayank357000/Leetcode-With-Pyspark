@@ -110,8 +110,8 @@ result_df = posts_df.join(comments_df, posts_df.post_id == comments_df.parent_id
 
 result_df.orderBy("post_id").show()
 
-#filter used on df, df.filter(codnition), returns a dataframe
+#filter/where used on df, df.filter(codnition), returns a dataframe
 #when used with select and in withColumn, return col() object
 #alais works on col() object
-#coalesce(,defualt value if null) returns a col() object
+#coalesce(col(),defualt value if null) returns a col() object
 #.distinct() works on a dataframe

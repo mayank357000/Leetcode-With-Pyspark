@@ -1,0 +1,70 @@
+SELECT 
+    q.id, 
+    q.year, 
+    CASE 
+        WHEN n.npv IS NULL THEN 0 
+        ELSE n.npv 
+    END AS npv
+FROM Queries q
+LEFT JOIN NPV n
+    ON q.id = n.id AND q.year = n.year;
+
+-------------------------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, coalesce, lit
+
+spark = SparkSession.builder.appName("NPVQueries").getOrCreate()
+
+npv_df = spark.read.csv("NPV.csv", header=True, inferSchema=True)
+queries_df = spark.read.csv("Queries.csv", header=True, inferSchema=True)
+
+#df.printSchema()
+#df.show()
+
+joined_df = queries_df.join(
+    npv_df,
+    on=[queries_df.id == npv_df.id, queries_df.year == npv_df.year],
+    how="left"
+)
+
+joined_df = joined_df.withColumn("npv", coalesce(npv_df.npv, lit(0)))
+
+result_df = joined_df.select(queries_df.id, queries_df.year, col("npv"))
+result_df.show()
+
+----------------
+#if want to mention schema explicitly
+
+from pyspark.sql.types import StructType, StructField, IntegerType
+
+npv_schema = StructType([
+    StructField("id", IntegerType(), True),
+    StructField("year", IntegerType(), True),
+    StructField("npv", IntegerType(), True)
+])
+
+queries_schema = StructType([
+    StructField("id", IntegerType(), True),
+    StructField("year", IntegerType(), True)
+])
+
+npv_df = spark.read.csv("NPV.csv", header=True, schema=npv_schema)
+queries_df = spark.read.csv("Queries.csv", header=True, schema=queries_schema)
+
+------------------------
+#else can cast wrong cols if they were made to string
+from pyspark.sql.functions import col
+
+npv_df = npv_df.withColumn("id", col("id").cast("int")) \
+               .withColumn("year", col("year").cast("int")) \
+               .withColumn("npv", col("npv").cast("int"))
+
+queries_df = queries_df.withColumn("id", col("id").cast("int")) \
+                       .withColumn("year", col("year").cast("int"))
+
+-------------------------
+If your CSV does not have a header, set header=False and provide column names using .toDF():
+
+df = spark.read.csv("file.csv", header=False)
+df = df.toDF("id", "year", "npv")
