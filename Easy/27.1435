@@ -1,0 +1,88 @@
+https://leetcode.ca/all/1435.html
+
+WITH bins AS (
+    SELECT
+        CASE
+            WHEN duration >= 0 AND duration < 300 THEN '[0-5>'
+            WHEN duration >= 300 AND duration < 600 THEN '[5-10>'
+            WHEN duration >= 600 AND duration < 900 THEN '[10-15>'
+            ELSE '15 or more'
+        END AS bin
+    FROM Sessions
+)
+SELECT
+    bin,
+    COUNT(*) AS total -- count(*) does not return null, 0 if not found
+FROM bins
+GROUP BY bin;
+
+-- WITH all_bins AS (
+--     SELECT '[0-5>' AS bin UNION ALL
+--     SELECT '[5-10>' UNION ALL
+--     SELECT '[10-15>' UNION ALL
+--     SELECT '15 or more'
+-- ),
+-- session_bins AS (
+--     SELECT
+--         CASE
+--             WHEN duration >= 0 AND duration < 300 THEN '[0-5>'
+--             WHEN duration >= 300 AND duration < 600 THEN '[5-10>'
+--             WHEN duration >= 600 AND duration < 900 THEN '[10-15>'
+--             ELSE '15 or more'
+--         END AS bin
+--     FROM Sessions
+-- ),
+-- bin_counts AS (
+--     SELECT bin, COUNT(*) AS total
+--     FROM session_bins
+--     GROUP BY bin
+-- )
+-- SELECT
+--     a.bin,
+--     COALESCE(b.total, 0) AS total
+-- FROM all_bins a
+-- LEFT JOIN bin_counts b ON a.bin = b.bin;
+
+---------------------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, when, lit, count
+from pyspark.sql.types import StructType, StructField, IntegerType, StringType
+
+# Initialize Spark session
+spark = SparkSession.builder.appName("SessionBarChart").getOrCreate()
+
+# Sample data for Sessions table
+sessions_data = [
+    (1, 30),
+    (2, 299),
+    (3, 340),
+    (4, 580),
+    (5, 1000)
+]
+sessions_schema = StructType([
+    StructField("session_id", IntegerType(), True),
+    StructField("duration", IntegerType(), True)
+])
+sessions_df = spark.createDataFrame(sessions_data, sessions_schema)
+
+binned_df = sessions_df.withColumn(
+    "bin",
+    when((col("duration") >= 0) & (col("duration") < 300), "[0-5>")
+    .when((col("duration") >= 300) & (col("duration") < 600), "[5-10>")
+    .when((col("duration") >= 600) & (col("duration") < 900), "[10-15>")
+    .otherwise("15 or more")
+)
+
+bin_counts_df = binned_df.groupBy("bin").agg(count("*").alias("total"))
+#result_df=bin_counts_df.select("bin","total")
+
+-- all_bins = ["[0-5>", "[5-10>", "[10-15>", "15 or more"]
+-- #creates a list of single-element tuples
+--#list of strings and tuples to create DataFrame
+-- all_bins_df = spark.createDataFrame([(b,) for b in all_bins], ["bin"])
+
+-- result_df = all_bins_df.join(bin_counts_df, on="bin", how="left") \
+--     .withColumn("total", when(col("total").isNull(), lit(0)).otherwise(col("total")))
+
+result_df.show()

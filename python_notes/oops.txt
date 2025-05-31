@@ -6,7 +6,7 @@ Object-Oriented Programming (OOP) Differences
 ✔ Constructor:
 - Python: def __init__(self, name):
 ✔ Static methods:
-- Python: @staticmethod(using decorator, wrapper over a function)
+- Python: @staticmethod(using a decorator which wrapper over a function)
 ✔ Class methods:
 - Python: @classmethod
 ✔ Inheritance:
@@ -86,8 +86,8 @@ same as doing this:
 def greet():
     print("Hello!")
 
-greet = my_decorator(greet)  # ✅ Manually wrapping the function
-greet()  # ✅ Calls the modified function
+greet2 = my_decorator(greet)  # ✅ Manually wrapping the function
+greet2()  # ✅ Calls the modified function
 
 
 

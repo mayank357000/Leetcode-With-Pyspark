@@ -87,7 +87,7 @@ from pyspark.sql.functions import col, countDistinct, coalesce
 # Initialize Spark Session
 spark = SparkSession.builder.appName("CommentsPerPost").getOrCreate()
 
-# Sample Data
+# Sample Data, null is None in python 
 data = [
     (1, None), (2, None), (1, None), (12, None),
     (3, 1), (5, 2), (3, 1), (4, 1), (9, 1), (10, 2), (6, 7)
@@ -112,6 +112,6 @@ result_df.orderBy("post_id").show()
 
 #filter/where used on df, df.filter(codnition), returns a dataframe
 #when used with select and in withColumn, return col() object
-#alais works on col() object
+#alias works on col() object
 #coalesce(col(),defualt value if null) returns a col() object
 #.distinct() works on a dataframe

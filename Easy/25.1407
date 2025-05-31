@@ -14,7 +14,7 @@ result_df = u_df.join(r_df, u_df.id == r_df.user_id, how="left") \
 
 -- #can use df_name.column for columns that exist in the original DataFrame (like u_df.name or u_df.id) before or during transformations such as join, groupBy, and select.
 
--- #However, for new columns created by aggregation or withColumn (like your alias "travelled_distance"), you must use col("travelled_distance")
+-- #However, for new columns created by aggregation(inside agg we make col.alias()) or withColumn (like your alias "travelled_distance"), you must use col("travelled_distance")
 
 -- #can rename df if want to use col() only
 -- u = u_df.alias("u")

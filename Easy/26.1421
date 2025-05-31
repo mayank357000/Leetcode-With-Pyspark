@@ -28,6 +28,8 @@ joined_df = queries_df.join(
     how="left"
 )
 
+#lit retunrs a col() obejct so can be used in withColumn
+
 joined_df = joined_df.withColumn("npv", coalesce(npv_df.npv, lit(0)))
 
 result_df = joined_df.select(queries_df.id, queries_df.year, col("npv"))
@@ -38,6 +40,7 @@ result_df.show()
 
 from pyspark.sql.types import StructType, StructField, IntegerType
 
+#StructType takes a input of list of StructField Objects
 npv_schema = StructType([
     StructField("id", IntegerType(), True),
     StructField("year", IntegerType(), True),
@@ -56,6 +59,7 @@ queries_df = spark.read.csv("Queries.csv", header=True, schema=queries_schema)
 #else can cast wrong cols if they were made to string
 from pyspark.sql.functions import col
 
+#.cast("") can be used on col() object
 npv_df = npv_df.withColumn("id", col("id").cast("int")) \
                .withColumn("year", col("year").cast("int")) \
                .withColumn("npv", col("npv").cast("int"))
@@ -66,5 +70,11 @@ queries_df = queries_df.withColumn("id", col("id").cast("int")) \
 -------------------------
 If your CSV does not have a header, set header=False and provide column names using .toDF():
 
-df = spark.read.csv("file.csv", header=False)
+df = spark.read.csv("file.csv", header=False), _c1,_c2,_c3.... default headers
 df = df.toDF("id", "year", "npv")
+
+#.toDF() is used to rename all columns of a DataFrame at once.
+#can also convert rdd to df , while doing so it can take column names or not
+rdd = spark.sparkContext.parallelize([(1, 2020, 100), (2, 2021, 200)])
+df1 = rdd.toDF()  # Columns: _1, _2, _3
+df2 = rdd.toDF("id", "year", "npv")  # Columns: id, year, npv

@@ -50,6 +50,7 @@ SELECT
     COUNT(*) OVER (PARTITION BY team_id) AS team_size
 FROM Employee;
 
+#count(distrinct column_name)
 ---------------------------
 from pyspark.sql.functions import count, col
 

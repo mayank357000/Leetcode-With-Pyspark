@@ -92,12 +92,12 @@ data = [
     ("Cat", "Sphynx", 7, 4),
 ]
 columns = ["query_name", "result", "position", "rating"]
-df = spark.createDataFrame(data=data,schema=columns)
+df = spark.createDataFrame(data=data,schema=columns) #parameters are list of tuples,list of string
 
 df=df.withColumn("ratio",col("rating)/col("position"))\
         .withColumn("quality_binary",when(col("rating")<3,1).otherwise(0))
 
-#add otherwise else col values will becoime null/None if condition not satifeid , so overwriiten
+#add otherwise else col values will become null/None if condition not satisfied , so overwritten
 
 result_df=df.groupBy("query_name").agg(avg("ratio").alias("quality"),
     round((sum("quality_binary") * 100.0 / count("*")), 2).alias("poor_query_percentage")

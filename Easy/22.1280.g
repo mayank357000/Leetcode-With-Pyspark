@@ -164,7 +164,7 @@ exam_counts_df = examinations_df.groupBy("student_id", "subject_name") \
     .agg(count("*").alias("attended_exams"))
 
 
-#can give a list,string,boolean in condition of equality
+#can give a list of string,string,boolean in condition of equality
 result_df = all_combinations_df.join(
     exam_counts_df,
     on=["student_id", "subject_name"],

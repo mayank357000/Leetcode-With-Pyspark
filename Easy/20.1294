@@ -99,7 +99,7 @@ WHERE YEAR(w.day) = 2019 AND MONTH(w.day) = 11
 GROUP BY c.country_id, c.country_name;
 
 -- if that was a string date col then have to convert to date
---since day and year return int and work on date and timstamp col
+--since day,month and year return 'int' and work on date and timestamp col
 --SELECT YEAR(CAST(day AS DATE)), MONTH(CAST(day AS DATE)) FROM Weather
 
 
@@ -149,7 +149,7 @@ weather_df = spark.createDataFrame(weather_data, weather_columns)
 
 weather_df = weather_df.withColumn("day", to_date(col("day"), "yyyy-MM-dd"))
 
-#to_date(col(),"datetype")
+#to_date(col(''),"datetype  string")
 
 weather_nov_df = weather_df.filter(
     (year(col("day")) == 2019) & (month(col("day")) == 11)

@@ -3,7 +3,7 @@ arr=list(map(int,input().split()))
 input ek string type ka hoga, usko split krdo toh wo list of substring
 
 map applies int() to each ele of list
-The map() function returns an iterator
+The map(function_name,list) function returns an iterator
 
 --------------------------------------
 You're right that int is a type in Python, 
