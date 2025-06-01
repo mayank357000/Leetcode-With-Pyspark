@@ -1,0 +1,23 @@
+select product_id from 
+products where low_fats='Y' and recyclable='Y';
+
+-----------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+
+spark = SparkSession.builder.appName("LowFatRecyclableProducts").getOrCreate()
+
+products_df = spark.read.csv("products.csv", header=True, inferSchema=True)
+
+products_df.printSchema()
+
+#ensure product_id is int
+products_df = products_df.withColumn("product_id", col("product_id").cast("int"))
+
+result_df = products_df.filter(
+    (col("low_fats") == 'Y') & (col("recyclable") == 'Y')
+).select("product_id")
+
+result_df.show()
+
