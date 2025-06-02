@@ -1,0 +1,12 @@
+SELECT
+    COUNT(DISTINCT customer_id) AS rich_count
+FROM
+    Store
+WHERE
+    amount > 500;
+    ------------------------
+
+result_df = store_df.filter(col("amount") > 500) \
+    .select("customer_id") \
+    .distinct() \
+    .agg(count("*").alias("rich_count"))
