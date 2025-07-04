@@ -103,12 +103,21 @@ comments_df = df.filter(col("parent_id").isNotNull()) \
 
 result_df = posts_df.join(comments_df, posts_df.post_id == comments_df.parent_id, "left") \
             .select(posts_df.post_id, coalesce(col("number_of_comments"), 0).alias("number_of_comments"))
+
 #OR
+
 result_df = posts_df.join(comments_df, posts_df.post_id == comments_df.parent_id, "left") \
     .select(posts_df.post_id, \
             when(col("number_of_comments").isNotNull(), col("number_of_comments")).otherwise(0).alias("number_of_comments"))
 
 result_df.orderBy("post_id").show()
+
+
+#col("number_of_comments").isNotNull() returns a Column 
+#object that represents a boolean value - col() object filled with True False values
+#for each row (True if not null, False if null).
+#That’s why you can use it as the first parameter in when(condition,value):
+
 
 #filter/where used on df, df.filter(codnition), returns a dataframe
 #when used with select and in withColumn, return col() object

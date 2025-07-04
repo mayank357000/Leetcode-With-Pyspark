@@ -101,6 +101,7 @@ GROUP BY c.country_id, c.country_name;
 -- if that was a string date col then have to convert to date
 --since day,month and year return 'int' and work on date and timestamp col
 --SELECT YEAR(CAST(day AS DATE)), MONTH(CAST(day AS DATE)) FROM Weather
+-- CAST(COL AS TYPE)
 
 
 ---------------------------------------
@@ -158,6 +159,9 @@ weather_nov_df = weather_df.filter(
 #we can use: weather_df = weather_df.filter(
 #    (col("day").substr(1, 4) == "2019") & (col("day").substr(6, 2) == "11")
 #)
+
+#col.substr(start idx 1 based,number of chars)
+#python substr syntax is diff, (0 based indx,exlcusive idx)
 
 avg_weather_df = weather_nov_df.groupBy("country_id").agg(
     avg(col("weather_state")).alias("avg_weather")

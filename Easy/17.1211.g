@@ -8,6 +8,7 @@ Table: Queries
 | position    | int     |
 | rating      | int     |
 +-------------+---------+
+
 This table may have duplicate rows.
 This table contains information collected from some queries on a database.
 The position column has a value from 1 to 500.
@@ -78,11 +79,13 @@ FROM cte
 GROUP BY query_name;
 
 --------------------------------
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when, avg, sum, count, round
 
 spark = SparkSession.builder.appName("QueryQuality").getOrCreate()
 
+#list of tuples
 data = [
     ("Dog", "Golden Retriever", 1, 5),
     ("Dog", "German Shepherd", 2, 5),
@@ -91,11 +94,15 @@ data = [
     ("Cat", "Siamese", 3, 3),
     ("Cat", "Sphynx", 7, 4),
 ]
+#list of strings
 columns = ["query_name", "result", "position", "rating"]
 df = spark.createDataFrame(data=data,schema=columns) #parameters are list of tuples,list of string
 
 df=df.withColumn("ratio",col("rating)/col("position"))\
         .withColumn("quality_binary",when(col("rating")<3,1).otherwise(0))
+
+#when func returns col object
+#withcol(string parameter, col()/airthmatic of col()/when func returning col obj)
 
 #add otherwise else col values will become null/None if condition not satisfied , so overwritten
 
