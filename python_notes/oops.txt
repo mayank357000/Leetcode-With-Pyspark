@@ -12,6 +12,8 @@ Object-Oriented Programming (OOP) Differences
 ✔ Inheritance:
 - Python: class Child(Parent)
 
+-- class name should be in capital
+
 Python:
 class Animal:
     def __init__(self, name):
