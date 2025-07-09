@@ -98,4 +98,9 @@ OR
 
 df.filter(col("name").like("M%"))
 
+or
+
+(substring("name", 1, 1") != "M") , 
+#(col("name"),startidx,number of characters)
+
 result_df.show()

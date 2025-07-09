@@ -11,7 +11,6 @@ Table: Students
 student_id is the primary key (column with unique values) for this table.
 Each row of this table contains the ID and the name of one student in the school.
  
-
 Table: Subjects
 
 +--------------+---------+
@@ -21,7 +20,6 @@ Table: Subjects
 +--------------+---------+
 subject_name is the primary key (column with unique values) for this table.
 Each row of this table contains the name of one subject in the school.
- 
 
 Table: Examinations
 
@@ -35,7 +33,6 @@ There is no primary key (column with unique values) for this table. It may conta
 Each student from the Students table takes every course from the Subjects table.
 Each row of this table indicates that a student with ID student_id attended the exam of subject_name.
  
-
 Write a solution to find the number of times each student attended each exam.
 
 Return the result table ordered by student_id and subject_name.
@@ -158,11 +155,11 @@ subjects_df = spark.createDataFrame(subjects_data, subjects_columns)
 examinations_df = spark.createDataFrame(examinations_data, examinations_columns)
 
 all_combinations_df = students_df.crossJoin(subjects_df)
-#crossJoin has different syntax, no condition and no type
+#crossJoin has different syntax, no condition and no type/on and how
 
 exam_counts_df = examinations_df.groupBy("student_id", "subject_name") \
     .agg(count("*").alias("attended_exams"))
-
+#so we will have those roup by cols and agg cols in df
 
 #can give a list of string,string,boolean in condition of equality
 result_df = all_combinations_df.join(

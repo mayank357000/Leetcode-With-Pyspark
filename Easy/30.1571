@@ -25,6 +25,7 @@ Table: Products
 | Length        | int     |
 | Height        | int     |
 +---------------+---------+
+
 product_id is the primary key for this table.
 Each row of this table contains the information about the product dimensions (Width, Lenght and Height) in feets of each product.
  
@@ -129,6 +130,14 @@ joined_df = warehouse_df.join(
 result_df = joined_df.groupBy("name").agg(
     coalesce(_sum("product_volume"), lit(0)).alias("volume")
 ).withColumnRenamed("name", "warehouse_name")
+#alias inside agg is the general pattern
+
+---
+we can use fillna() but instead inside agg, it adds on full df: df.fillna(0)
+df.fillna({
+    "volume": 0,
+    "product_name": "unknown"
+})
 
 result_df.show()
 <!-- 
@@ -139,10 +148,13 @@ This is especially important for reporting, where you want to show 0 instead of 
 -----------------------
 
 The when() function always requires a condition (which is usually built using a col() object or an expression involving DataFrame columns).
-when() is not used independently; it is used to build a new column or inside .withColumn() or .select().
+
+--""when() is not used independently; it is used to build a new column or inside .withColumn() or .select()"
 
 when() is used with column expressions, not as a standalone function. returns col() object
 It is typically used inside .withColumn() or .select() to create or transform columns.
+
+when(condition,col() object)
 
 products_df = products_df.withColumn(
     "Width",

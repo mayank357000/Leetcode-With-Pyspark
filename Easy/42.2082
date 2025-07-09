@@ -10,3 +10,10 @@ result_df = store_df.filter(col("amount") > 500) \
     .select("customer_id") \
     .distinct() \
     .agg(count("*").alias("rich_count"))
+
+or
+
+from pyspark.sql.functions import countDistinct
+
+result_df = store_df.filter(col("amount") > 500) \
+    .agg(countDistinct("customer_id").alias("rich_count"))

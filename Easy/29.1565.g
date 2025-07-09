@@ -59,6 +59,10 @@ SELECT
 FROM Orders
 GROUP BY SUBSTRING(order_date, 1, 7);
 
+-- here count(distinct case when returning col) help us with customer_count
+-- sum(condition)=number of rows not unique rows, could not help us here hence used count
+-- count does not count null
+
 <!-- In SQL, when you use CASE WHEN ... THEN ... END without an ELSE, the default is ELSE NULL.
 So, for rows where invoice > 20 is not true, the expression returns NULL.
 COUNT(DISTINCT ...) ignores NULLs—it only counts non-null, distinct values. -->
@@ -70,6 +74,13 @@ COUNT(DISTINCT ...) ignores NULLs—it only counts non-null, distinct values. --
 FROM Orders
 GROUP BY CONCAT(YEAR(order_date), '-', LPAD(MONTH(order_date), 2, '0')); -->
 
+------------
+SELECT
+  DATE_FORMAT(order_date, '%Y-%m') AS month,
+  COUNT(DISTINCT order_id) AS order_count,
+  COUNT(DISTINCT CASE WHEN invoice > 20 THEN customer_id END) AS customer_count
+FROM Orders
+GROUP BY DATE_FORMAT(order_date, '%Y-%m');
 -----------------------------------------
 
 from pyspark.sql import SparkSession

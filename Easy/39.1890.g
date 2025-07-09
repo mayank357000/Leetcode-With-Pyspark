@@ -18,8 +18,6 @@ Return the result table in any order.
 
 The result format is in the following example.
 
- 
-
 Example 1:
 
 Input: 
@@ -79,4 +77,5 @@ from pyspark.sql.functions import row_number
 w = Window.partitionBy("user_id").orderBy(col("time_stamp").desc())
 
 windowed_df = df_2020.withColumn("rnk", row_number().over(w))
+#adding a new col with withColumn
 result_window_df = windowed_df.filter(col("rnk") == 1).select("user_id", col("time_stamp").alias("last_stamp"))

@@ -68,3 +68,38 @@ result_df = dailysales_df.groupBy(["date_id", "make_name"]) \
         countDistinct("partner_id").alias("unique_partners")
     ) \
     .select("date_id", "make_name", "unique_leads", "unique_partners")
+
+----------------
+
+if was asked to find the number of unique lead-partner pairs for each date_id:
+
+SELECT
+    date_id,
+    COUNT(DISTINCT CONCAT(lead_id, '-', partner_id)) AS unique_lead_partner_pairs
+FROM DailySales
+GROUP BY date_id;
+
+result_df = dailysales_df.groupBy("date_id") \
+    .agg(countDistinct(concat(col("lead_id"), lit("-"), col("partner_id"))).alias("unique_lead_partner_pairs")) \
+    .select("date_id", "unique_lead_partner_pairs")
+
+or concat_ws("-", col("lead_id"), col("partner_id")) instead of concat if you want to use a separator:
+
+-------------------
+
+can use struct too in countDistinct(struct(lead_id, partner_id)) to count unique pairs:
+
+Structs in PySpark act like Spark-native records or dictionaries—they 
+let you group multiple columns together into a single column that holds a
+ nested structure. While it’s not exactly a Python dict, it’s conceptually similar:
+from pyspark.sql.functions import struct
+
+df.withColumn("details", struct("lead_id", "partner_id"))
+
++--------+-----------+----------------+
+|lead_id |partner_id |pair            |
++--------+-----------+----------------+
+|1       |2          |{1, 2}          |
+|3       |4          |{3, 4}          |
+
+df.select("details.lead_id", "details.partner_id")

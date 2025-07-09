@@ -11,17 +11,19 @@ Table: Products
 | store3      | int     |
 +-------------+---------+
 product_id is the primary key (column with unique values) for this table.
-Each row in this table indicates the product's price in 3 different stores: store1, store2, and store3.
+Each row in this table indicates the product's price in 3 different stores: 
+store1, store2, and store3.
 If the product is not available in a store, the price will be null in that store's column.
  
 
-Write a solution to rearrange the Products table so that each row has (product_id, store, price). If a product is not available in a store, do not include a row with that product_id and store combination in the result table.
+Write a solution to rearrange the Products table 
+so that each row has (product_id, store, price). 
+If a product is not available in a store, do not include a row with that 
+product_id and store combination in the result table.
 
 Return the result table in any order.
 
 The result format is in the following example.
-
- 
 
 Example 1:
 
@@ -45,6 +47,11 @@ Output:
 +------------+--------+-------+
 
 ------------------------------------------------------
+This type of transformation is classic in data wrangling:
+ converting a wide format to a long format
+
+----------------------------------------------------
+
 
 with cte1 ascending(
     select product_id,'store1' as store,store1 as price where store1 is not null
@@ -97,3 +104,24 @@ df_store3 = df.withColumn("store", lit("store3")) \
 # Union all
 result_df = df_store1.union(df_store2).union(df_store3)
 --------------------------
+
+from pyspark.sql import functions as F
+
+# Sample DataFrame
+df = spark.createDataFrame([
+    (0, 95, 100, 105),
+    (1, 70, None, 80)
+], ["product_id", "store1", "store2", "store3"])
+
+# Convert wide to long using array and explode
+df_transformed = df.withColumn(
+    "store_price_array",
+    F.array(
+        F.when(F.col("store1").isNotNull(), F.struct(F.lit("store1").alias("store"), F.col("store1").alias("price"))),
+        F.when(F.col("store2").isNotNull(), F.struct(F.lit("store2").alias("store"), F.col("store2").alias("price"))),
+        F.when(F.col("store3").isNotNull(), F.struct(F.lit("store3").alias("store"), F.col("store3").alias("price")))
+    )
+).select("product_id", F.explode("store_price_array").alias("exploded")) \
+ .select("product_id", "exploded.store", "exploded.price")
+
+df_transformed.show()

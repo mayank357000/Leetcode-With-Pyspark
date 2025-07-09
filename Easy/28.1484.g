@@ -38,6 +38,21 @@ result_df = df.groupBy("sell_date") \
 result_df.show(truncate=False)
 
 
+------------
+here collect_set returns a "spark_array col()", so it is also a col
+array_sort is used to sort spark_array col and reutrns a spark array col() obj, so still col()
+and concat_ws inside agg(all 3 inside agg) return string, can take input of multiple col() objects, a spark array col
+concat_ws(" | ", lit("User"), col("id"), col("role"))
+
+
+from pyspark.sql.functions import collect_set, array_sort
+
+df.groupBy("sell_date").agg(
+    array_sort(collect_set("product")).alias("sorted_products")
+).show()
+
+sorted_products
+["apple", "banana"]
 ----------------------------
 
 Spark array col ke methods hai dono

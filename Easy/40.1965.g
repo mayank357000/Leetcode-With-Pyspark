@@ -61,6 +61,11 @@ Output:
 +-------------+
 
 -----------------------------
+UNDERSTAND THE PROBLEM CORRECTLY
+what we need is no slaary or no name emp, 
+"emp table id if not presnt in salary means salary missing for that emp and vice versa"
+so simple union won't work to detect missing other table info
+-----------------------------
 
 SELECT e.employee_id
 FROM Employees e
@@ -71,12 +76,20 @@ ORDER BY employee_id;
 
 ------------------------------
 
+we need eid whose either name is null or salary null
+if we do separate salary null and name null union, we might might id who is not present in other table
+union just remove duplicates if they exist, not get us common rows
+
+#get all salary null= all salary null values + salary table ids not present in employee table
+
 SELECT e.employee_id
 FROM Employees e
 LEFT JOIN Salaries s ON e.employee_id = s.employee_id
 WHERE s.salary IS NULL
 
 UNION
+
+#get all name null = all name null values + employee table ids not present in salary table
 
 SELECT s.employee_id
 FROM Salaries s

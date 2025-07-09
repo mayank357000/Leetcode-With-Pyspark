@@ -28,6 +28,7 @@ address_data = [
 ]
 address_columns = ["addressId", "personId", "city", "state"]
 
+#list of tuples, list of strings
 person_df = spark.createDataFrame(person_data, schema=person_columns)
 address_df = spark.createDataFrame(address_data, schema=address_columns)
 

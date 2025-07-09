@@ -14,7 +14,7 @@ This table contains the customer ID and the revenue of customers in different ye
 Note that this revenue can be negative.
  
 
-Write an SQL query to report the customers with postive revenue in the year 2021.
+Write an SQL query to report the customers with positive revenue in the year 2021.
 
 Return the result table in any order.
 
@@ -63,7 +63,7 @@ from pyspark.sql.functions import col
 spark = SparkSession.builder.appName("PositiveRevenue2021").getOrCreate()
 
 customers_df = spark.read.csv("customers.csv", header=True, inferSchema=True)
-customers_df.printSchema()  # Industry practice: check schema
+customers_df.printSchema()  # Industry practice:  check schema
 
 result_df = customers_df.filter(
     (col("year") == 2021) & (col("revenue") > 0)

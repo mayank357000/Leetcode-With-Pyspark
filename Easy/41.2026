@@ -1,6 +1,6 @@
 SELECT problem_id
 FROM Problems
-WHERE likes / (likes + dislikes) < 0.6
+WHERE CAST(likes AS FLOAT) / CAST(likes + dislikes AS FLOAT) < 0.6
 ORDER BY problem_id;
 
 ------------------------
@@ -8,3 +8,6 @@ ORDER BY problem_id;
 result_df = problems_df.filter(
     col("likes") / (col("likes") + col("dislikes")) < 0.6
 ).select("problem_id").orderBy("problem_id")
+
+#internal division return when int/int
+#also can do, df = df.withColumn("likes_casted", col("likes").cast("double")/col("likes") + col("dislikes").cast("double"))

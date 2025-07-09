@@ -50,7 +50,9 @@ SELECT
     COUNT(*) OVER (PARTITION BY team_id) AS team_size
 FROM Employee;
 
-#count(distrinct column_name)
+#count(distinct column_name)
+
+#alt and basic approach of grp by get count then join
 ---------------------------
 from pyspark.sql.functions import count, col
 
@@ -65,3 +67,11 @@ result_df = e_df.join(ts_df, on="team_id", how="left") \
     .select(e_df.employee_id, ts_df.team_size)
 
 result_df.show()
+
+OR
+
+w = Window.partitionBy("team_id")
+
+# Add the team_size column using the window function
+result_df = e_df.withColumn("team_size", count("employee_id").over(w)) \
+    .select("employee_id", "team_size")

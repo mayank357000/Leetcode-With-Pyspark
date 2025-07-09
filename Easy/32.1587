@@ -123,9 +123,11 @@ transactions_columns = ["trans_id", "account", "amount", "transacted_on"]
 users_df = spark.createDataFrame(users_data, users_columns)
 transactions_df = spark.createDataFrame(transactions_data, transactions_columns)
 
-result_df=users_df.join(transaction_df,"account")\
+result_df=users_df.join(transactions_df,"account")\
     .groupBy("name")\
-    .agg(sum("amount").alias("balance"))\
+    .agg(_sum("amount").alias("balance"))\
     .filter(col("balance")>10000)
+
+-- filter/where before and after works similar to having and where in sql
 
 result_df.show()

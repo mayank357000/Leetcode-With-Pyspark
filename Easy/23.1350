@@ -93,11 +93,20 @@ result_df = s_df.join(d_df, s_df.department_id == d_df.id, "left") \
 
 OR
 
-invalid_dept_ids = [row.id for row in s_df.select("department_id").distinct().collect()
-                    if row.id not in [d.id for d in d_df.select("id").distinct().collect()]]
+# Get list of valid department ids
+valid_dept_ids = [row.id for row in d_df.select("id").distinct().collect()]
 
-result_df = s_df.filter(col("department_id").isin(invalid_dept_ids)) \
+
+#a for loop inside square brackets is called a list comprehension, and it creates a new list.
+#[new_value for item in iterable]
+
+# Filter students whose department_id is NOT in the valid list
+result_df = s_df.filter(~col("department_id").isin(valid_dept_ids)) \
     .select("id", "name")
 
+
+#.collect() returns a list of Row objects.
+#rows = df.select("id").collect()  # rows is a list of Row objects
+#print(rows)  # [Row(id=1), Row(id=2), Row(id=3)]
 #col.isin(python list as input, (so use .collect() to make list from df)) to check values, returns true,false, used for filter  
 #df.filter(~col("department_id").isin([1, 7, 13])), NOT IN LOGIC
