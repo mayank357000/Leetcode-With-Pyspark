@@ -28,7 +28,6 @@ Table: Ads
 ad_id is the primary key for this table.
 customer_id is the ID of the customer viewing this ad.
 timestamp is the moment of time at which the ad was shown.
- 
 
 Write an SQL query to report all the sessions that did not get shown any ads.
 
@@ -72,3 +71,26 @@ The ad with ID 3 was shown to user 2 at time 20 while they were in session 4.
 We can see that sessions 1 and 4 had at least one ad. Sessions 2, 3, and 5 did not have any ads, so we return them
 
 ------------------------------------------
+
+SELECT p.session_id
+FROM Playback p
+LEFT JOIN Ads a
+  ON p.customer_id = a.customer_id
+ AND a.timestamp BETWEEN p.start_time AND p.end_time
+WHERE a.ad_id IS NULL;
+
+#is null used not something=null, syntax error
+
+-----------------------------
+from pyspark.sql.functions import col
+
+joined_df = playback_df.join(
+    ads_df,
+    (playback_df.customer_id == ads_df.customer_id) &
+    (ads_df.timestamp.between(playback_df.start_time, playback_df.end_time)),
+    how="left"
+)
+
+OR (ads_df.timestamp >= playback_df.start_time) & (ads_df.timestamp <= playback_df.end_time)
+
+result_df = joined_df.filter(col("ad_id").isNull()).select("session_id")
