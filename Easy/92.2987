@@ -1,0 +1,111 @@
+2987. Find Expensive Cities
+Description
+Table: Listings
+
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| listing_id  | int     |
+| city        | varchar |
+| price       | int     |
++-------------+---------+
+listing_id is column of unique values for this table.
+This table contains listing_id, city, and price.
+Write a solution to find cities where the average home prices exceed the national average home price.
+
+Return the result table sorted by city in ascending order.
+
+The result format is in the following example.
+
+Example 1:
+
+Input: 
+Listings table:
++------------+--------------+---------+
+| listing_id | city         | price   | 
++------------+--------------+---------+
+| 113        | LosAngeles   | 7560386 | 
+| 136        | SanFrancisco | 2380268 |     
+| 92         | Chicago      | 9833209 | 
+| 60         | Chicago      | 5147582 | 
+| 8          | Chicago      | 5274441 |  
+| 79         | SanFrancisco | 8372065 | 
+| 37         | Chicago      | 7939595 | 
+| 53         | LosAngeles   | 4965123 | 
+| 178        | SanFrancisco | 999207  | 
+| 51         | NewYork      | 5951718 | 
+| 121        | NewYork      | 2893760 | 
++------------+--------------+---------+
+Output
++------------+
+| city       | 
++------------+
+| Chicago    | 
+| LosAngeles |  
++------------+
+Explanation
+The national average home price is $6,122,059.45. Among the cities listed:
+- Chicago has an average price of $7,043,706.75
+- Los Angeles has an average price of $6,277,754.5
+- San Francisco has an average price of $3,900,513.33
+- New York has an average price of $4,422,739
+
+Only Chicago and Los Angeles have average home prices exceeding the national average. 
+Therefore, these two cities are included in the output table. 
+The output table is sorted in ascending order based on the city names.
+
+------------------------
+WITH NationalAverage AS (
+    SELECT AVG(price) AS avg_national_price
+    FROM Listings
+),
+CityAverage AS (
+    SELECT city, AVG(price) AS avg_city_price
+    FROM Listings
+    GROUP BY city
+)
+##JOIN krna so that col is available to all
+SELECT ca.city
+FROM CityAverage ca
+JOIN NationalAverage na
+  ON ca.avg_city_price > na.avg_national_price
+ORDER BY ca.city ASC;
+
+-------------------------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import avg, col
+
+# Sample SparkSession setup
+spark = SparkSession.builder.getOrCreate()
+
+# Sample DataFrame (replace with actual data source)
+listings_df = spark.createDataFrame([
+    (113, "LosAngeles", 7560386),
+    (136, "SanFrancisco", 2380268),
+    (92, "Chicago", 9833209),
+    (60, "Chicago", 5147582),
+    (8, "Chicago", 5274441),
+    (79, "SanFrancisco", 8372065),
+    (37, "Chicago", 7939595),
+    (53, "LosAngeles", 4965123),
+    (178, "SanFrancisco", 999207),
+    (51, "NewYork", 5951718),
+    (121, "NewYork", 2893760)
+], ["listing_id", "city", "price"])
+
+# 1️⃣ National average price
+national_avg_df = listings_df.agg(avg("price").alias("avg_national_price"))
+national_avg = national_avg_df.collect()[0]["avg_national_price"]
+
+# 2️⃣ City-level average prices
+city_avg_df = listings_df.groupBy("city").agg(avg("price").alias("avg_city_price"))
+
+# 3️⃣ Filter cities with average price > national average
+expensive_cities_df = city_avg_df.filter(col("avg_city_price") > national_avg)
+
+# 4️⃣ Sort by city ascending
+result_df = expensive_cities_df.select("city").orderBy("city")
+
+# Final result
+result_df.show()

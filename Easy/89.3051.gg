@@ -1,0 +1,110 @@
+3051. Find Candidates for Data Scientist Position
+Description
+Table: Candidates
+
++--------------+---------+ 
+\| Column Name  \| Type    \| 
++--------------+---------+ 
+\| candidate_id \| int     \| 
+\| skill        \| varchar \|
++--------------+---------+
+(candidate_id, skill) is the primary key (columns with unique values) for this table.
+Each row includes candidate_id and skill.
+
+Write a query to find the candidates best suited for a Data Scientist position. The candidate must be proficient in Python, Tableau, and PostgreSQL.
+
+Return the result table ordered by candidate_id in ascending order.
+
+The result format is in the following example.
+
+Example 1:
+
+Input: 
+Candidates table:
++---------------+--------------+
+\| candidate_id  \| skill        \| 
++---------------+--------------+
+\| 123           \| Python       \|
+\| 234           \| R            \| 
+\| 123           \| Tableau      \| 
+\| 123           \| PostgreSQL   \| 
+\| 234           \| PowerBI      \| 
+\| 234           \| SQL Server   \| 
+\| 147           \| Python       \| 
+\| 147           \| Tableau      \| 
+\| 147           \| Java         \|
+\| 147           \| PostgreSQL   \|
+\| 256           \| Tableau      \|
+\| 102           \| DataAnalysis \|
++---------------+--------------+
+Output: 
++--------------+
+\| candidate_id \|  
++--------------+
+\| 123          \|  
+\| 147          \| 
++--------------+
+Explanation: 
+- Candidates 123 and 147 possess the necessary skills in Python, Tableau, and PostgreSQL for the data scientist position.
+- Candidates 234 and 102 do not possess any of the required skills for this position.
+- Candidate 256 has proficiency in Tableau but is missing skills in Python and PostgreSQL.
+The output table is sorted by candidate_id in ascending order.
+-------------------------------------
+pattern where we should have 2-3 or more, col values
+----------------------------------
+first make join for each col value having table, then join/SELF JOIN N times
+or
+worng (won't wokr since we need all of them since count distinct=n is needed)
+group by person/attribute then sum(case when) and then at last check then number in other cte 
+or
+in list and then group by and having distinct count should be used 
+-------------------------
+SELECT candidate_id
+FROM Candidates
+WHERE skill IN ('Python', 'Tableau', 'PostgreSQL')
+GROUP BY candidate_id
+HAVING COUNT(DISTINCT skill) = 3
+ORDER BY candidate_id;
+OR
+SELECT DISTINCT c1.candidate_id
+FROM Candidates c1
+JOIN Candidates c2 ON c1.candidate_id = c2.candidate_id
+JOIN Candidates c3 ON c1.candidate_id = c3.candidate_id
+WHERE c1.skill = 'Python'
+  AND c2.skill = 'Tableau'
+  AND c3.skill = 'PostgreSQL'
+ORDER BY c1.candidate_id;
+-----------------------------------
+
+from pyspark.sql.functions import col
+
+# Step 1: Filter relevant skills
+required_skills = ['Python', 'Tableau', 'PostgreSQL']
+filtered = df.filter(col("skill").isin(required_skills))
+
+# Step 2: Count distinct skills per candidate
+aggregated = filtered.groupBy("candidate_id").agg(
+    countDistinct("skill").alias("matched_skills")
+)
+
+# Step 3: Filter those with all 3
+qualified = aggregated.filter(col("matched_skills") == 3).orderBy("candidate_id")
+
+# Step 4: Display
+qualified.select("candidate_id").show()
+
+OR
+
+from pyspark.sql.functions import col
+
+# Filter each skill into its own DataFrame
+python_df      = candidates_df.filter(col("skill") == "Python").select("candidate_id")
+tableau_df     = candidates_df.filter(col("skill") == "Tableau").select("candidate_id")
+postgresql_df  = candidates_df.filter(col("skill") == "PostgreSQL").select("candidate_id")
+
+# Self-join on candidate_id across all three
+qualified_df = python_df \
+    .join(tableau_df, on="candidate_id") \
+    .join(postgresql_df, on="candidate_id") \
+    .distinct() \
+    .orderBy("candidate_id")

@@ -1,0 +1,126 @@
+2480. Form a Chemical Bond
+Description
+Table: Elements
+
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| symbol      | varchar |
+| type        | enum    |
+| electrons   | int     |
++-------------+---------+
+symbol is the primary key for this table.
+Each row of this table contains information of one element.
+type is an ENUM of type ('Metal', 'Nonmetal', 'Noble')
+ - If type is Noble, electrons is 0.
+ - If type is Metal, electrons is the number of electrons that one atom of this element can give.
+ - If type is Nonmetal, electrons is the number of electrons that one atom of this element needs.
+
+Two elements can form a bond if one of them is 'Metal' and the other is 'Nonmetal'.
+
+Write an SQL query to find all the pairs of elements that can form a bond.
+
+Return the result table in any order.
+
+The query result format is in the following example.
+
+Example 1:
+
+Input: 
+Elements table:
++--------+----------+-----------+
+| symbol | type     | electrons |
++--------+----------+-----------+
+| He     | Noble    | 0         |
+| Na     | Metal    | 1         |
+| Ca     | Metal    | 2         |
+| La     | Metal    | 3         |
+| Cl     | Nonmetal | 1         |
+| O      | Nonmetal | 2         |
+| N      | Nonmetal | 3         |
++--------+----------+-----------+
+
+Output: 
++-------+----------+
+| metal | nonmetal |
++-------+----------+
+| La    | Cl       |
+| Ca    | Cl       |
+| Na    | Cl       |
+| La    | O        |
+| Ca    | O        |
+| Na    | O        |
+| La    | N        |
+| Ca    | N        |
+| Na    | N        |
++-------+----------+
+
+Explanation: 
+
+Metal elements are La, Ca, and Na.
+Nonmeal elements are Cl, O, and N.
+Each Metal element pairs with a Nonmetal element in the output table.
+
+WITH Metals AS (
+    SELECT symbol AS metal, electrons AS give_electrons
+    FROM Elements
+    WHERE type = 'Metal'
+),
+Nonmetals AS (
+    SELECT symbol AS nonmetal, electrons AS need_electrons
+    FROM Elements
+    WHERE type = 'Nonmetal'
+)
+
+SELECT m.metal, n.nonmetal
+FROM Metals m
+JOIN Nonmetals n ON m.give_electrons = n.need_electrons;
+
+----------------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+
+# Start SparkSession
+spark = SparkSession.builder.getOrCreate()
+
+# Sample Elements DataFrame
+elements_df = spark.createDataFrame([
+    ("He", "Noble", 0),
+    ("Na", "Metal", 1),
+    ("Ca", "Metal", 2),
+    ("La", "Metal", 3),
+    ("Cl", "Nonmetal", 1),
+    ("O", "Nonmetal", 2),
+    ("N", "Nonmetal", 3)
+], ["symbol", "type", "electrons"])
+
+# 🧪 Metals CTE → DataFrame
+metals_df = elements_df.filter(col("type") == "Metal") \
+    .select(
+        col("symbol").alias("metal"),
+        col("electrons").alias("give_electrons")
+    )
+
+# 🔬 Nonmetals CTE → DataFrame
+nonmetals_df = elements_df.filter(col("type") == "Nonmetal") \
+    .select(
+        col("symbol").alias("nonmetal"),
+        col("electrons").alias("need_electrons")
+    )
+
+# ⚛️ Form bonds where electrons match
+bond_df = metals_df.join(
+    nonmetals_df,
+    on=metals_df["give_electrons"] == nonmetals_df["need_electrons"],
+    how="inner"
+).select("metal", "nonmetal")
+
+# 🧾 Show result
+bond_df.show(truncate=False)
+
+OR
+
+bond_df = metals_df.crossJoin(nonmetals_df) \
+    .filter(col("give_electrons") == col("need_electrons")) \
+    .select("metal", "nonmetal")
