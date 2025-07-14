@@ -34,10 +34,8 @@ ORDER BY state;
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import collect_list, col, array_sort, concat_ws
 
-# Start SparkSession
 spark = SparkSession.builder.getOrCreate()
 
-# Sample DataFrame (replace with actual source)
 cities_df = spark.createDataFrame([
     ("California", "San Francisco"),
     ("California", "Los Angeles"),
@@ -50,12 +48,10 @@ cities_df = spark.createDataFrame([
     ("Texas", "Houston")
 ], ["state", "city"])
 
-# 🔡 Group cities per state into comma-separated string
 result_df = cities_df.groupBy("state") \
     .agg(
         concat_ws(", ", array_sort(collect_list("city"))).alias("city_list")
     ) \
     .orderBy("state")
 
-# 💬 Show result
 result_df.show(truncate=False)

@@ -57,3 +57,42 @@ Product 3: Invalid serial number SN1234-56789 (contains 5 digits after the hyphe
 Product 4: No serial number in the description
 Product 5: Valid serial number SN4321-8765
 The result table is ordered by product_id in ascending order.
+
+----------------------
+from pyspark.sql.functions import col
+
+# Pattern: SN followed by 4 digits, a hyphen, then 4 more digits
+pattern = r"SN\d{4}-\d{4}"
+
+# Apply regex filter
+valid_serial_df = df.filter(col("description").rlike(pattern)) \
+                    .orderBy(col("product_id").asc())
+
+-----------------------
+
+from pyspark.sql.functions import col, udf
+from pyspark.sql.types import BooleanType
+
+def is_valid_serial(description):
+    if not description:
+        return False
+    
+    for i in range(len(description) - 11): 
+        chunk = description[i:i+11]
+
+        if not chunk.startswith("SN"):
+            continue
+
+        digits1 = chunk[2:6]
+        hyphen = chunk[6]
+        digits2 = chunk[7:11]
+
+        if digits1.isdigit() and hyphen == '-' and digits2.isdigit():
+            return True
+
+    return False
+
+serial_udf = udf(is_valid_serial, BooleanType())
+
+valid_serial_df_udf = df.filter(serial_udf(col("description"))) \
+                        .orderBy(col("product_id").asc())

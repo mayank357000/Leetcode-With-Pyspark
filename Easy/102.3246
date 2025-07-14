@@ -1,9 +1,4 @@
-3246 - Premier League Table Ranking
-Posted on August 24, 2024
-1 minute read
-Welcome to Subscribe On Youtube
-
-3246. Premier League Table Ranking 🔒
+3246. Premier League Table Ranking
 Description
 Table: TeamStats
 
@@ -34,3 +29,33 @@ Chelsea has 18 points (5 wins * 3 points + 3 draws * 1 point) and is position 3r
 Arsenal has 16 points (4 wins * 3 points + 4 draws * 1 point) and is position 4th.
 Tottenham has 14 points (3 wins * 3 points + 5 draws * 1 point) and is position 5th.
 The output table is ordered by points in descending order, then by team_name in ascending order.
+
+----------------------
+SELECT 
+    team_id, 
+    team_name, 
+    (wins * 3 + draws) AS points,
+    DENSE_RANK() OVER (
+        ORDER BY (wins * 3 + draws) DESC, team_name ASC
+    ) AS rank
+FROM 
+    TeamStats
+ORDER BY 
+    points DESC, team_name ASC;
+
+----------------------------
+
+from pyspark.sql.window import Window
+from pyspark.sql.functions import col, dense_rank
+
+df = df.withColumn("points", col("wins") * 3 + col("draws"))
+
+windowSpec = Window.orderBy(col("points").desc(), col("team_name").asc())
+
+df = df.withColumn("rank", dense_rank().over(windowSpec)) \
+       .orderBy(col("points").desc(), col("team_name").asc()) \
+       .select("team_id", "team_name", "points", "rank")
+
+#In standard SQL, you can’t use an alias (like points) 
+#inside the same SELECT clause’s OVER() window function
+#PySpark doesn’t suffer from that restriction

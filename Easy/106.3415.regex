@@ -1,0 +1,61 @@
+3415. Find Products with Three Consecutive Digits 🔒
+Description
+Table: Products
+
++-++
+\| product_id  \| int     \|
+\| name        \| varchar \|
++-+-----+
+Explanation:
+
+Product 1: ABC123XYZ contains the digits 123.
+Product 5: 789Product contains the digits 789.
+Product 6: Item003Description contains 003, which is exactly three digits.
+Note:
+
+Results are ordered by product_id in ascending order.
+Only products with exactly three consecutive digits in their names are included in the result.
+
+---------------------
+SELECT 
+    product_id, 
+    name
+FROM 
+    Products
+WHERE 
+    name REGEXP '[^0-9][0-9]{3}[^0-9]' 
+    OR name REGEXP '^([0-9]{3}[^0-9])' 
+    OR name REGEXP '([^0-9][0-9]{3})$' 
+    OR name REGEXP '^([0-9]{3})$'
+ORDER BY 
+    product_id ASC;
+
+-----------------------
+from pyspark.sql.functions import col
+
+# Filter names with exactly three consecutive digits
+valid_df = df.filter(col("name").rlike(r"(?<!\d)\d{3}(?!\d)")) \
+             .orderBy(col("product_id").asc())
+
+------------------------
+
+from pyspark.sql.functions import col, udf
+from pyspark.sql.types import BooleanType
+
+def has_three_consecutive_digits(name):
+    if not name or len(name) < 3:
+        return False
+    
+    for i in range(len(name) - 2):
+        chunk = name[i:i+3]
+        before = name[i-1] if i > 0 else ''
+        after = name[i+3] if i+3 < len(name) else ''
+        
+        if chunk.isdigit() and not before.isdigit() and not after.isdigit():
+            return True
+    return False
+
+three_digits_udf = udf(has_three_consecutive_digits, BooleanType())
+
+valid_df_udf = df.filter(three_digits_udf(col("name"))) \
+                 .orderBy(col("product_id").asc())
