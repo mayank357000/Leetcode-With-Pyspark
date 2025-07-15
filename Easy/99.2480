@@ -81,10 +81,9 @@ JOIN Nonmetals n ON m.give_electrons = n.need_electrons;
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 
-# Start SparkSession
 spark = SparkSession.builder.getOrCreate()
 
-# Sample Elements DataFrame
+#list of string tuples
 elements_df = spark.createDataFrame([
     ("He", "Noble", 0),
     ("Na", "Metal", 1),
@@ -95,28 +94,24 @@ elements_df = spark.createDataFrame([
     ("N", "Nonmetal", 3)
 ], ["symbol", "type", "electrons"])
 
-# 🧪 Metals CTE → DataFrame
 metals_df = elements_df.filter(col("type") == "Metal") \
     .select(
         col("symbol").alias("metal"),
         col("electrons").alias("give_electrons")
     )
 
-# 🔬 Nonmetals CTE → DataFrame
 nonmetals_df = elements_df.filter(col("type") == "Nonmetal") \
     .select(
         col("symbol").alias("nonmetal"),
         col("electrons").alias("need_electrons")
     )
 
-# ⚛️ Form bonds where electrons match
 bond_df = metals_df.join(
     nonmetals_df,
     on=metals_df["give_electrons"] == nonmetals_df["need_electrons"],
     how="inner"
 ).select("metal", "nonmetal")
 
-# 🧾 Show result
 bond_df.show(truncate=False)
 
 OR

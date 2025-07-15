@@ -66,3 +66,14 @@ select emp_id, firstname, lastname, max(salary) as salary, department_id
 from Salary;
 
 df=df.groupBy("emp_id", "firstname", "lastname", "department_id").agg(max("salary").alias("salary")).orderBy("emp_id") ;
+
+OR
+
+from pyspark.sql.window import Window
+from pyspark.sql.functions import max
+
+# Define a window over the entire DataFrame
+window_spec = Window.rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)
+
+# Add a new column with the max salary
+df = df.withColumn("max_salary", max("salary").over(window_spec))

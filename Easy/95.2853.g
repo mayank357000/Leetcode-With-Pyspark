@@ -64,10 +64,8 @@ df=df.agg(max(when(col("department")=="Marketing"),"salary").alias("MAXENG"),max
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import when, col, max, abs
 
-# 🔧 Start SparkSession
 spark = SparkSession.builder.getOrCreate()
 
-# 📦 Sample DataFrame
 df = spark.createDataFrame([
     ("Kathy", "Engineering", 50000),
     ("Roy", "Marketing", 30000),

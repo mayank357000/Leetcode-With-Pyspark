@@ -2,15 +2,13 @@
 Description
 Table: books
 
-++
 \| Column Name    \| Type    \|
-++
 \| book_id        \| int     \|
 \| title          \| varchar \|
 \| author         \| varchar \|
 \| published_year \| int     \|
 \| rating         \| decimal \|
-++
+
 book_id is the unique key for this table.
 Each row of this table contains information about a book including 
 its unique ID, title, author, publication year, and rating.

@@ -43,10 +43,13 @@ The calculation is as follows:
  - Therefore, the average items per order is 8900 / 3300 = 2.70
 
  ---------------------------
- SELECT 
+
+SELECT 
   ROUND(SUM(item_count * order_occurrences) * 1.0 / SUM(order_occurrences), 2) AS average_items_per_order
 FROM Orders;
------------------------
+
+----------------------------
+
 agg_df = orders_df.agg(
     _sum("total_items").alias("sum_items"),
     _sum("order_occurrences").alias("sum_orders")

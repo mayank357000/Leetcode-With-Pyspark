@@ -94,18 +94,13 @@ listings_df = spark.createDataFrame([
     (121, "NewYork", 2893760)
 ], ["listing_id", "city", "price"])
 
-# 1️⃣ National average price
 national_avg_df = listings_df.agg(avg("price").alias("avg_national_price"))
 national_avg = national_avg_df.collect()[0]["avg_national_price"]
 
-# 2️⃣ City-level average prices
 city_avg_df = listings_df.groupBy("city").agg(avg("price").alias("avg_city_price"))
 
-# 3️⃣ Filter cities with average price > national average
 expensive_cities_df = city_avg_df.filter(col("avg_city_price") > national_avg)
 
-# 4️⃣ Sort by city ascending
 result_df = expensive_cities_df.select("city").orderBy("city")
 
-# Final result
 result_df.show()
