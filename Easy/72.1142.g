@@ -50,7 +50,7 @@ Result table:
 User 1 and 2 each had 1 session in the past 30 days while user 3 had 2 sessions so the average is 
 
 --------------------
-language kahcra hai question ki, what we actually care about is acutal number of sessions, and actual number rof users
+language kahcra hai question ki, what we actually care about is acutal number of sessions, and actual number of users
 then avg ession per user
 -------------------------------
 

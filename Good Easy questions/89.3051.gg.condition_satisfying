@@ -1,0 +1,133 @@
+89. Condition Satisfying Question
+
+Table: Table_A
+
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| id          | int     |
+| name        | varchar |
++-------------+---------+
+id is the primary key for this table.
+Each row of this table contains a name with an id.
+
+Table: Table_B
+
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| id          | int     |
+| type        | varchar |
++-------------+---------+
+id is the primary key for this table.
+Each row of this table contains a type of entry with an id.
+
+Write an SQL query to find all the ids from Table_A that satisfy either of these two conditions:
+
+1. The id exists in Table_B with type = 'A'
+2. The name in Table_A starts with 'M' and id DOES NOT exist in Table_B with any type
+
+Return the result table ordered by id.
+
+Example 1:
+
+Input: 
+Table_A:
++----+----------+
+| id | name     |
++----+----------+
+| 1  | Mike     |
+| 2  | John     |
+| 3  | Mary     |
+| 4  | Mark     |
+| 5  | Alice    |
++----+----------+
+
+Table_B:
++----+------+
+| id | type |
++----+------+
+| 1  | A    |
+| 2  | B    |
+| 4  | C    |
++----+------+
+
+Output: 
++----+
+| id |
++----+
+| 1  |
+| 3  |
++----+
+
+Explanation: 
+- ID 1 is included because it exists in Table_B with type 'A'
+- ID 3 is included because it starts with 'M' and does not exist in Table_B
+- ID 4 starts with 'M' but is excluded because it exists in Table_B (even though type != 'A')
+
+-----------------------------------
+
+SELECT a.id
+FROM Table_A a
+WHERE EXISTS (
+    SELECT 1 
+    FROM Table_B b 
+    WHERE b.id = a.id 
+    AND b.type = 'A'
+)
+OR (
+    a.name LIKE 'M%' 
+    AND NOT EXISTS (
+        SELECT 1 
+        FROM Table_B b 
+        WHERE b.id = a.id
+    )
+)
+ORDER BY a.id;
+
+OR USING LEFT JOIN 
+
+SELECT DISTINCT a.id
+FROM Table_A a
+LEFT JOIN Table_B b ON a.id = b.id
+WHERE b.type = 'A'
+   OR (a.name LIKE 'M%' AND b.id IS NULL)
+ORDER BY a.id;
+
+-----------------------------------
+
+from pyspark.sql.functions import col, expr
+
+# Using exists/not exists logic with subqueries
+condition1 = exists(
+    table_b.filter(
+        (col("id") == table_a.id) & 
+        (col("type") == "A")
+    ).select("1")
+)
+
+condition2 = (
+    col("name").like("M%") & 
+    ~exists(
+        table_b.filter(col("id") == table_a.id)
+        .select("1")
+    )
+)
+
+result_df = table_a.filter(condition1 | condition2) \
+                  .select("id") \
+                  .orderBy("id")
+
+OR USING LEFT JOIN
+
+from pyspark.sql.functions import col, isnull
+
+# Using left join approach
+result_df = table_a.join(
+    table_b,
+    "id",
+    "left"
+).filter(
+    (col("type") == "A") |
+    ((col("name").like("M%")) & isnull("type"))
+).select("id").distinct().orderBy("id")

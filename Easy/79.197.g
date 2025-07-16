@@ -1,10 +1,5 @@
 197. Rising Temperature
-Easy
-Topics
-premium lock icon
-Companies
-SQL Schema
-Pandas Schema
+
 Table: Weather
 
 +---------------+---------+

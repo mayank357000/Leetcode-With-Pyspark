@@ -1,0 +1,152 @@
+1083. Sales Analysis II
+Table: Product
+
++--------------+---------+
+| Column Name  | Type    |
++--------------+---------+
+| product_id   | int     |
+| product_name | varchar |
+| unit_price   | int     |
++--------------+---------+
+product_id is the primary key of this table.
+
+Table: Sales
+
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| seller_id   | int     |
+| product_id  | int     |
+| buyer_id    | int     |
+| sale_date   | date    |
+| quantity    | int     |
+| price       | int     |
++------ ------+---------+
+This table has no primary key, it can have repeated rows.
+product_id is a foreign key to Product table.
+ 
+
+Write an SQL query that reports the buyers who have bought S8 but not iPhone. Note that S8 and iPhone are products present in the Product table.
+
+The query result format is in the following example:
+
+Product table:
++------------+--------------+------------+
+| product_id | product_name | unit_price |
++------------+--------------+------------+
+| 1          | S8           | 1000       |
+| 2          | G4           | 800        |
+| 3          | iPhone       | 1400       |
++------------+--------------+------------+
+
+Sales table:
++-----------+------------+----------+------------+----------+-------+
+| seller_id | product_id | buyer_id | sale_date  | quantity | price |
++-----------+------------+----------+------------+----------+-------+
+| 1         | 1          | 1        | 2019-01-21 | 2        | 2000  |
+| 1         | 2          | 2        | 2019-02-17 | 1        | 800   |
+| 2         | 1          | 3        | 2019-06-02 | 1        | 800   |
+| 3         | 3          | 3        | 2019-05-13 | 2        | 2800  |
++-----------+------------+----------+------------+----------+-------+
+
+Result table:
++-------------+
+| buyer_id    |
++-------------+
+| 1           |
++-------------+
+The buyer with id 1 bought an S8 but didn't buy an iPhone. The buyer with id 3 bought both.
+
+------------------------------
+check if one record has one category but not other
+-----------------------------
+WITH s8_buyers AS (
+    SELECT DISTINCT s.buyer_id
+    FROM Sales s
+    JOIN Product p ON s.product_id = p.product_id
+    WHERE p.product_name = 'S8'
+),
+iphone_buyers AS (
+    SELECT DISTINCT s.buyer_id
+    FROM Sales s
+    JOIN Product p ON s.product_id = p.product_id
+    WHERE p.product_name = 'iPhone'
+)
+SELECT s8.buyer_id
+FROM s8_buyers s8
+LEFT JOIN iphone_buyers ip ON s8.buyer_id = ip.buyer_id
+WHERE ip.buyer_id IS NULL;
+#mathicng col hi null hoga when left join not mathced on right table
+
+OR
+
+SELECT DISTINCT s.buyer_id
+FROM Sales s
+JOIN Product p ON s.product_id = p.product_id
+WHERE p.product_name = 'S8'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM Sales s2
+      JOIN Product p2 ON s2.product_id = p2.product_id
+      WHERE p2.product_name = 'iPhone'
+        AND s2.buyer_id = s.buyer_id
+  );
+#subquery ka use, not exists work better than not in all cases
+
+------------------------------------
+
+NOT exists logic is same as anti-join in pyspark:
+
+from pyspark.sql.functions import col
+
+s8_buyers = sales_df.join(product_df, "product_id") \
+    .filter(col("product_name") == "S8") \
+    .select("buyer_id").distinct()
+
+iphone_buyers = sales_df.join(product_df, "product_id") \
+    .filter(col("product_name") == "iPhone") \
+    .select("buyer_id").distinct()
+
+s8_only_buyers = s8_buyers.join(iphone_buyers, on="buyer_id", how="left_anti")
+
+OR
+
+s8_buyers = sales_df.join(product_df, "product_id") \
+    .filter(col("product_name") == "S8") \
+    .select("buyer_id").distinct()
+
+iphone_buyers = sales_df.join(product_df, "product_id") \
+    .filter(col("product_name") == "iPhone") \
+    .select("buyer_id").distinct()
+
+s8_with_iphone_flag = s8_buyers.join(iphone_buyers.withColumnRenamed("buyer_id", "iphone_buyer_id"),
+                                     s8_buyers.buyer_id == col("iphone_buyer_id"),
+                                     how="left")
+
+s8_only = s8_with_iphone_flag.filter(col("iphone_buyer_id").isNull()).select("buyer_id")
+
+--------------------------------
+if asked other n things not be selected then how to proceed:
+SELECT DISTINCT s.buyer_id
+FROM Sales s
+JOIN Product p ON s.product_id = p.product_id
+WHERE p.product_name = 'S8'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM Sales s2
+      JOIN Product p2 ON s2.product_id = p2.product_id
+      WHERE s2.buyer_id = s.buyer_id
+        AND p2.product_name IN ('iPhone', 'G4', 'Pixel')
+  );
+and 
+from pyspark.sql.functions import col
+
+s8_buyers = sales_df.join(product_df, "product_id") \
+    .filter(col("product_name") == "S8") \
+    .select("buyer_id").distinct()
+
+excluded_buyers = sales_df.join(product_df, "product_id") \
+    .filter(col("product_name").isin("iPhone", "G4", "Pixel")) \
+    .select("buyer_id").distinct()
+
+eligible_buyers = s8_buyers.join(excluded_buyers, on="buyer_id", how="left_anti")

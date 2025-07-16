@@ -50,7 +50,7 @@ tweet_id 1 contains 4 mentions.
 tweet_id 4 contains 4 hashtags.
 Output table is ordered by tweet_id in ascending order.
 ----------------------------------
-find some characters in a string, relcae that character with empty string and diff of length
+find some characters in a string, replcae that character with empty string and diff of length
 --------------------------
 
 SELECT tweet_id

@@ -1,0 +1,128 @@
+1076. Project Employees II
+
+Table: Project
+
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| project_id  | int     |
+| employee_id | int     |
++-------------+---------+
+
+(project_id, employee_id) is the primary key of this table.
+employee_id is a foreign key to Employee table.
+
+Table: Employee
+
++------------------+---------+
+| Column Name      | Type    |
++------------------+---------+
+| employee_id      | int     |
+| name             | varchar |
+| experience_years | int     |
++------------------+---------+
+
+employee_id is the primary key of this table.
+
+Write an SQL query that reports all the projects that have the most employees.
+
+Return the result table in any order.
+
+The query result format is in the following example:
+
+Project table:
++-------------+-------------+
+| project_id  | employee_id |
++-------------+-------------+
+| 1           | 1           |
+| 1           | 2           |
+| 1           | 3           |
+| 2           | 1           |
+| 2           | 4           |
++-------------+-------------+
+
+Employee table:
++-------------+--------+------------------+
+| employee_id | name   | experience_years |
++-------------+--------+------------------+
+| 1           | Khaled | 3                |
+| 2           | Ali    | 2                |
+| 3           | John   | 1                |
+| 4           | Doe    | 2                |
++-------------+--------+------------------+
+
+Result table:
++-------------+
+| project_id  |
++-------------+
+| 1           |
++-------------+
+
+The first project has 3 employees while the second one has 2.
+
+-----------------------------------
+WITH ProjectCounts AS (
+    SELECT project_id, COUNT(*) AS emp_count
+    FROM Project
+    GROUP BY project_id
+),
+MaxCount AS (
+    SELECT MAX(emp_count) AS max_emp
+    FROM ProjectCounts
+)
+SELECT pc.project_id
+FROM ProjectCounts pc
+JOIN MaxCount mc ON pc.emp_count = mc.max_emp;
+
+OR
+
+-- Step 1: Aggregate employee count per project
+WITH ProjectCounts AS (
+    SELECT project_id, COUNT(*) AS emp_count
+    FROM Project
+    GROUP BY project_id
+),
+
+-- Step 2: Apply window function to rank projects by employee count
+RankedProjects AS (
+    SELECT project_id, emp_count,
+           DENSE_RANK() OVER (ORDER BY emp_count DESC) AS rnk
+    FROM ProjectCounts
+)
+
+-- Final result: Projects with max employee count
+SELECT project_id
+FROM RankedProjects
+WHERE rnk = 1;
+
+----------------------------------
+
+from pyspark.sql.functions import col, count
+
+# Step 1: Count employees per project
+project_counts = project_df.groupBy("project_id") \
+                         .agg(count("*").alias("emp_count"))
+
+# Step 2: Find the maximum count
+max_count = project_counts.agg({"emp_count": "max"}).collect()[0][0]
+
+# Step 3: Filter projects with the maximum count
+result = project_counts.filter(col("emp_count") == max_count) \
+                      .select("project_id")
+
+OR 
+
+from pyspark.sql.functions import col, count, dense_rank
+from pyspark.sql.window import Window
+
+# Step 1: Count employees per project
+project_counts = project_df.groupBy("project_id") \
+                         .agg(count("*").alias("emp_count"))
+
+# Step 2: Rank projects by employee count
+window_spec = Window.orderBy(col("emp_count").desc())
+ranked_projects = project_counts.withColumn("rnk", dense_rank().over(window_spec))
+
+# Step 3: Filter projects with rank 1
+result = ranked_projects.filter(col("rnk") == 1) \
+                       .select("project_id")
