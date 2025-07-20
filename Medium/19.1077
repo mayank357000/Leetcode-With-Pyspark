@@ -20,7 +20,6 @@ Table: Employee
 | experience_years | int     |
 +------------------+---------+
 employee_id is the primary key of this table.
- 
 
 Write an SQL query that reports the most experienced employees in each project. 
 In case of a tie, report all employees with the maximum number of experience years.
@@ -59,3 +58,40 @@ Result table:
 Both employees with id 1 and 3 have the most experience among the 
 employees of the first project. For the second project, 
 the employee with id 1 has the most experience.
+---------------------------
+SELECT project_id, employee_id
+FROM (
+    SELECT 
+        p.project_id,
+        e.employee_id,
+        RANK() OVER (
+            PARTITION BY p.project_id 
+            ORDER BY e.experience_years DESC
+        ) AS rnk
+    FROM Project p
+    JOIN Employee e ON p.employee_id = e.employee_id
+) ranked
+WHERE rnk = 1;
+
+OR
+
+SELECT p.project_id, p.employee_id
+FROM Project p
+JOIN Employee e ON p.employee_id = e.employee_id
+WHERE (p.project_id, e.experience_years) IN (
+    SELECT project_id, MAX(experience_years)
+    FROM Project p2
+    JOIN Employee e2 ON p2.employee_id = e2.employee_id
+    GROUP BY project_id
+)
+----------------------
+from pyspark.sql.window import Window
+from pyspark.sql.functions import rank, col
+
+joined_df = project_df.join(employee_df, on="employee_id", how="inner")
+
+project_window = Window.partitionBy("project_id").orderBy(col("experience_years").desc())
+
+ranked_df = joined_df.withColumn("rnk", rank().over(project_window))
+
+result_df = ranked_df.filter(col("rnk") == 1).select("project_id", "employee_id")

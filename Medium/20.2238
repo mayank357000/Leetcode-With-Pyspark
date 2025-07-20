@@ -13,11 +13,9 @@ ride_id is the primary key for this table.
 Each row of this table contains the ID of the driver 
 and the ID of the passenger that rode in ride_id.
 Note that driver_id != passenger_id.
- 
 
 Write an SQL query to report the ID of each driver and the 
 number of times they were a passenger.
-
 
 Return the result table in any order.
 
@@ -50,3 +48,28 @@ Explanation:
 There are two drivers in all the given rides: 7 and 11.
 The driver with ID = 7 was a passenger two times.
 The driver with ID = 11 was never a passenger.
+
+--------------------------
+SELECT d.driver_id, 
+       COALESCE(COUNT(r.passenger_id), 0) AS cnt
+FROM (
+    SELECT DISTINCT driver_id 
+    FROM Rides
+) d
+LEFT JOIN Rides r 
+  ON d.driver_id = r.passenger_id
+GROUP BY d.driver_id;
+
+OR
+
+SELECT driver_id,
+       COALESCE(SUM(passenger_flag), 0) AS cnt
+FROM (
+    SELECT driver_id,
+           CASE WHEN driver_id IN (
+               SELECT passenger_id FROM Rides
+           ) THEN 1 ELSE 0 END AS passenger_flag
+    FROM Rides
+    GROUP BY driver_id
+) AS flags;
+--------------------------------
