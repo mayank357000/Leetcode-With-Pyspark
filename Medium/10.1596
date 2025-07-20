@@ -1,5 +1,6 @@
 1596. The Most Frequently Ordered Products for Each Customer
 Description
+
 Table: Customers
 
 +---------------+---------+
@@ -10,7 +11,6 @@ Table: Customers
 +---------------+---------+
 customer_id is the column with unique values for this table.
 This table contains information about the customers.
- 
 
 Table: Orders
 
@@ -25,7 +25,6 @@ Table: Orders
 order_id is the column with unique values for this table.
 This table contains information about the orders made by customer_id.
 No customer will order the same product more than once in a single day.
- 
 
 Table: Products
 
@@ -36,20 +35,17 @@ Table: Products
 | product_name  | varchar |
 | price         | int     |
 +---------------+---------+
-product_id is the column with unique values for this table.
-This table contains information about the products.
- 
+product_id is the column with unique values for this table
+This table contains information about the products
 
-Write a solution to find the most frequently ordered product(s) for each customer.
+Write a solution to find the most frequently ordered product(s) for each customer
 
+The result table should have the product_id and product_name 
+for each customer_id who ordered at least one order
 
-The result table should have the product_id and product_name for each customer_id who ordered at least one order.
+Return the result table in any order
 
-Return the result table in any order.
-
-The result format is in the following example.
-
- 
+The result format is in the following example
 
 Example 1:
 
@@ -105,3 +101,90 @@ Bob (customer 2) ordered the keyboard, the mouse, and the screen one time, so th
 Tom (customer 3) only ordered the screen (two times), so that is the most frequently ordered product for them.
 Jerry (customer 4) only ordered the keyboard (one time), so that is the most frequently ordered product for them.
 John (customer 5) did not order anything, so we do not include them in the result table.
+--------------------------------
+WITH product_counts AS (
+    SELECT customer_id, product_id, COUNT(*) AS pdt_cnt
+    FROM Orders
+    GROUP BY customer_id, product_id
+),
+ranked_products AS (
+    SELECT customer_id, product_id, pdt_cnt,
+           RANK() OVER (
+               PARTITION BY customer_id -- only by customer_id, since pdt ke cnt pr ranking hogi 
+               ORDER BY pdt_cnt DESC
+           ) AS rnk
+    FROM product_counts
+)
+SELECT rp.customer_id, rp.product_id, p.product_name
+FROM ranked_products rp
+JOIN Products p 
+  ON rp.product_id = p.product_id
+WHERE rp.rnk = 1;
+
+#can use rownum if want only single pdt
+OR
+
+WITH product_counts AS (
+    SELECT customer_id, product_id, COUNT(*) AS pdt_cnt
+    FROM Orders
+    GROUP BY customer_id, product_id
+),
+max_counts AS (
+    SELECT customer_id, MAX(pdt_cnt) AS max_cnt --max cnt and then uska join
+    FROM product_counts
+    GROUP BY customer_id
+)
+SELECT pc.customer_id, pc.product_id, p.product_name
+FROM product_counts pc
+JOIN max_counts mc 
+  ON pc.customer_id = mc.customer_id AND pc.pdt_cnt = mc.max_cnt
+JOIN Products p 
+  ON pc.product_id = p.product_id;
+
+------------------------------
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+product_counts = orders_df.groupBy("customer_id", "product_id").agg(
+    F.count("*").alias("pdt_cnt")
+)
+
+max_counts = product_counts.groupBy("customer_id").agg(
+    F.max("pdt_cnt").alias("max_cnt")
+)
+
+filtered = product_counts.join(
+    max_counts,
+    on=["customer_id"]
+).filter(
+    product_counts["pdt_cnt"] == max_counts["max_cnt"]
+)
+
+result = filtered.join(
+    products_df,
+    on="product_id"
+).select(
+    "customer_id", "product_id", "product_name"
+)
+
+OR
+
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+product_counts = orders_df.groupBy("customer_id", "product_id").agg(
+    F.count("*").alias("pdt_cnt")
+)
+
+window_spec = Window.partitionBy("customer_id").orderBy(F.col("pdt_cnt").desc())
+
+ranked = product_counts.withColumn("rnk", F.rank().over(window_spec))
+
+filtered = ranked.filter("rnk = 1")
+
+result = filtered.join(
+    products_df,
+    on="product_id"
+).select(
+    "customer_id", "product_id", "product_name"
+)

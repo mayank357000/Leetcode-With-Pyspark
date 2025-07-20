@@ -78,3 +78,13 @@ SELECT
 FROM Scores
 ORDER BY gender, day;
 
+------------
+------------------------
+For rolling sum we can do one more thing
+either self join and for each record we can get records mathced less than date to it 
+and then do sum
+
+or similarly we can do corelated subquery where we for each record will match rows and sum
+(pyspakr don't support corelated subqueries so only for sql this way)
+------------------
+

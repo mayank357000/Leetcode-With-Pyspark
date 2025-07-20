@@ -1,0 +1,139 @@
+1398. Customers Who Bought Products A and B but Not C
+SQL Schema 
+Table: Customers
+
++---------------------+---------+
+| Column Name         | Type    |
++---------------------+---------+
+| customer_id         | int     |
+| customer_name       | varchar |
++---------------------+---------+
+customer_id is the primary key for this table.
+customer_name is the name of the customer.
+ 
+
+Table: Orders
+
++---------------+---------+
+| Column Name   | Type    |
++---------------+---------+
+| order_id      | int     |
+| customer_id   | int     |
+| product_name  | varchar |
++---------------+---------+
+order_id is the primary key for this table.
+customer_id is the id of the customer who bought the product "product_name".
+ 
+
+Write an SQL query to report the customer_id and customer_name of customers who bought products "A", "B" but did not buy the product "C" since we want to recommend them buy this product.
+
+Return the result table ordered by customer_id.
+
+The query result format is in the following example.
+
+ 
+
+Customers table:
++-------------+---------------+
+| customer_id | customer_name |
++-------------+---------------+
+| 1           | Daniel        |
+| 2           | Diana         |
+| 3           | Elizabeth     |
+| 4           | Jhon          |
++-------------+---------------+
+
+Orders table:
++------------+--------------+---------------+
+| order_id   | customer_id  | product_name  |
++------------+--------------+---------------+
+| 10         |     1        |     A         |
+| 20         |     1        |     B         |
+| 30         |     1        |     D         |
+| 40         |     1        |     C         |
+| 50         |     2        |     A         |
+| 60         |     3        |     A         |
+| 70         |     3        |     B         |
+| 80         |     3        |     D         |
+| 90         |     4        |     C         |
++------------+--------------+---------------+
+
+Result table:
++-------------+---------------+
+| customer_id | customer_name |
++-------------+---------------+
+| 3           | Elizabeth     |
++-------------+---------------+
+Only the customer_id with id 3 bought the product A and B but not the product C.
+
+-------------------------
+if we use where isin a,b but how to handle not c, so even doing having distinct count won't work
+-----------------------
+
+SELECT customer_id
+FROM Orders
+GROUP BY customer_id
+HAVING SUM(product_name = 'A') > 0
+   AND SUM(product_name = 'B') > 0
+   AND SUM(product_name = 'C') = 0;
+
+---------------------
+from pyspark.sql import functions as F
+
+orders_agg = orders_df.groupBy("customer_id").agg(
+    F.sum(F.expr("product_name = 'A'")).alias("has_A"),
+    F.sum(F.expr("product_name = 'B'")).alias("has_B"),
+    F.sum(F.expr("product_name = 'C'")).alias("has_C")
+)
+
+filtered = orders_agg.filter(
+    (F.col("has_A") > 0) &
+    (F.col("has_B") > 0) &
+    (F.col("has_C") == 0)
+)
+
+result = filtered.join(
+    customers_df,
+    on="customer_id"
+).select(
+    "customer_id", "customer_name"
+).orderBy("customer_id")
+
+---------------------
+or can sole using set based appraoch
+
+SELECT c.customer_id, c.customer_name
+FROM Customers c
+JOIN (
+    SELECT customer_id
+    FROM Orders
+    WHERE product_name = 'A'
+    INTERSECT
+    SELECT customer_id
+    FROM Orders
+    WHERE product_name = 'B'
+    EXCEPT
+    SELECT customer_id
+    FROM Orders
+    WHERE product_name = 'C'
+) eligible ON c.customer_id = eligible.customer_id
+ORDER BY c.customer_id;
+
+from pyspark.sql import functions as F
+
+a_buyers = orders_df.filter(F.col("product_name") == "A").select("customer_id").distinct()
+
+b_buyers = orders_df.filter(F.col("product_name") == "B").select("customer_id").distinct()
+
+c_buyers = orders_df.filter(F.col("product_name") == "C").select("customer_id").distinct()
+
+ab_buyers = a_buyers.intersect(b_buyers)
+
+eligible_customers = ab_buyers.subtract(c_buyers)
+
+result = eligible_customers.join(
+    customers_df,
+    on="customer_id"
+).select(
+    "customer_id", "customer_name"
+).orderBy("customer_id")
