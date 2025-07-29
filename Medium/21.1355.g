@@ -99,6 +99,7 @@ activity_counts = friends_df.groupBy("activity").agg(count("*").alias("cnt"))
 max_count = activity_counts.select(max("cnt")).first()[0]
 min_count = activity_counts.select(min("cnt")).first()[0]
 #can use this too: activity_counts.select(max("cnt")).collect()[0][0]
+#this collect() returns list of row object,we get first row and either use index or "string key" to get col value
 
 result_df = activity_counts.filter(
     (col("cnt") != lit(max_count)) & (col("cnt") != lit(min_count))

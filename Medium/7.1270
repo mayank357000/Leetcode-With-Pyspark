@@ -12,7 +12,6 @@ Table: Employees
 employee_id is the primary key for this table.
 Each row of this table indicates that the employee with ID employee_id and name employee_name reports his work to his/her direct manager with manager_id
 The head of the company is the employee with employee_id = 1.
- 
 
 Write an SQL query to find employee_id of all employees that directly or indirectly report their work to the head of the company.
 
@@ -60,7 +59,7 @@ LEFT JOIN Employees m1 ON e.manager_id = m1.employee_id
 LEFT JOIN Employees m2 ON m1.manager_id = m2.employee_id
 LEFT JOIN Employees m3 ON m2.manager_id = m3.employee_id
 WHERE e.employee_id != 1 AND (
-    e.manager_id = 1/e.employee_id!=e.manager_id OR
+    e.manager_id = 1  /e.employee_id!=e.manager_id OR
     m1.manager_id = 1 OR
     m2.manager_id = 1
 );

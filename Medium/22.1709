@@ -1,5 +1,4 @@
 1709. Biggest Window Between Visits
-SQL Schema 
 Table: UserVisits
 
 +-------------+------+
@@ -10,7 +9,6 @@ Table: UserVisits
 +-------------+------+
 This table does not have a primary key.
 This table contains logs of the dates that users vistied a certain retailer.
- 
 
 Assume today's date is '2021-1-1'.
 
@@ -19,8 +17,6 @@ Write an SQL query that will, for each user_id, find out the largest window of d
 Return the result table ordered by user_id.
 
 The query result format is in the following example:
-
- 
 
 UserVisits table:
 +---------+------------+
@@ -52,3 +48,38 @@ For the second user, the windows in question are between dates:
 Making the biggest window the one with 65 days.
 For the third user, the only window in question is 
 between dates 2020-11-11 and 2021-1-1 with a total of 51 days.
+
+--------------------------------
+WITH cte AS (
+  SELECT
+    user_id,
+    DATEDIFF(
+      COALESCE(LEAD(visit_date) OVER (PARTITION BY user_id ORDER BY visit_date), DATE '2021-01-01'),
+      visit_date
+    ) AS window
+  FROM UserVisits
+)
+SELECT
+  user_id,
+  MAX(window) AS biggest_window
+FROM cte
+GROUP BY user_id
+ORDER BY user_id;
+
+------------------------------
+from pyspark.sql.functions import lead, datediff, coalesce, lit, max as spark_max
+from pyspark.sql.window import Window
+
+window_spec = Window.partitionBy("user_id").orderBy("visit_date")
+
+df_with_window = df.withColumn(
+    "next_date",
+    coalesce(lead("visit_date").over(window_spec), lit("2021-01-01").cast("date"))
+).withColumn(
+    "window",
+    datediff("next_date", "visit_date")
+)
+
+result = df_with_window.groupBy("user_id").agg(
+    spark_max("window").alias("biggest_window")
+).orderBy("user_id")

@@ -84,7 +84,36 @@ For rolling sum we can do one more thing
 either self join and for each record we can get records mathced less than date to it 
 and then do sum
 
-or similarly we can do corelated subquery where we for each record will match rows and sum
-(pyspakr don't support corelated subqueries so only for sql this way)
+or similarly we can do correlated subquery where we for each record will match rows and sum
+(pyspark don't support correlated subqueries so only for sql this way)
 ------------------
 
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, sum as sum_, to_date
+from pyspark.sql.window import Window
+
+# Sample data
+data = [
+    ("Aron", "F", "2020-01-01", 17),
+    ("Alice", "F", "2020-01-07", 23),
+    ("Bajrang", "M", "2020-01-07", 7),
+    ("Khali", "M", "2019-12-25", 11),
+    ("Slaman", "M", "2019-12-30", 13),
+    ("Joe", "M", "2019-12-31", 3),
+    ("Jose", "M", "2019-12-18", 2),
+    ("Priya", "F", "2019-12-31", 23),
+    ("Priyanka", "F", "2019-12-30", 17)
+]
+columns = ["player_name", "gender", "day", "score_points"]
+
+spark = SparkSession.builder.getOrCreate()
+df = spark.createDataFrame(data, columns) \
+         .withColumn("day", to_date(col("day")))
+
+w = Window.partitionBy("gender").orderBy("day").rowsBetween(Window.unboundedPreceding, Window.currentRow)
+
+df_running = df.withColumn("total", sum_("score_points").over(w)) \
+               .select("gender", "day", "total") \
+               .orderBy("gender", "day")
+
+df_running.show()

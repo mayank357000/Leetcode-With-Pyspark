@@ -12,15 +12,12 @@ Table: Calls
 This table does not have a primary key, it may contain duplicates.
 This table contains the duration of a phone call between from_id and to_id.
 from_id != to_id
- 
 
 Write an SQL query to report the number of calls and the total call duration between each pair of distinct persons (person1, person2) where person1 < person2.
 
 Return the result table in any order.
 
 The query result format is in the following example:
-
- 
 
 Calls table:
 +---------+-------+----------+
@@ -48,6 +45,9 @@ Users 1 and 3 had 1 call and the total duration is 20.
 Users 3 and 4 had 4 calls and the total duration is 999 (100 + 200 + 200 + 499).
 
 ------------------------------
+distinct pair by col1<col2 or one pair onnly by least, greatest func which takes col values
+----------------------------------
+
 WITH cte1 AS (
   SELECT from_id AS person1, to_id AS person2, duration FROM Calls
   UNION ALL
@@ -80,6 +80,7 @@ FROM unified_calls
 GROUP BY person1, person2;
 
 ----------------------
+
 from pyspark.sql import functions as F
 
 normalized_df = (
@@ -92,7 +93,9 @@ normalized_df = (
         F.sum("duration").alias("total_duration")
     )
 )
+
 OR
+
 from pyspark.sql import functions as F
 
 calls_a = calls_df.select(

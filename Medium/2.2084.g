@@ -57,6 +57,9 @@ Customer 4 has two orders of type 1. We return both of them.
 
 ------------------------
 condition based quesitions, 0 wala case or [starts type 1 case so handle that] 
+
+or better frame this question as , we have no problem with 0 records
+and for 1 rec, they should have any 0 records
 ----------------------
 
 WITH Type0_Customers AS (

@@ -59,3 +59,27 @@ SELECT
 FROM Ranked
 GROUP BY diff
 ORDER BY start_id;
+
+------------------
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, row_number, min as min_, max as max_, expr
+from pyspark.sql.window import Window
+
+# list of tuples, strings
+data = [(1,), (2,), (3,), (7,), (8,), (10,)]
+columns = ["log_id"]
+
+spark = SparkSession.builder.getOrCreate()
+df = spark.createDataFrame(data, columns)
+
+w = Window.orderBy("log_id")
+
+df_ranked = df.withColumn("row_num", row_number().over(w)) \
+              .withColumn("diff", expr("log_id - row_num"))
+
+df_ranges = df_ranked.groupBy("diff") \
+    .agg(min_("log_id").alias("start_id"),
+         max_("log_id").alias("end_id")) \
+    .orderBy("start_id")
+
+df_ranges.show()
