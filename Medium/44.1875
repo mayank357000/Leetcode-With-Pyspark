@@ -1,110 +1,108 @@
-2051. The Category of Each Member in the Store
+1875 - Group Employees of the Same Salary
 
-Table: Members
+
+1875. Group Employees of the Same Salary
+Level
+Medium
+
+Description
+Table: Employees
 
 +-------------+---------+
 | Column Name | Type    |
 +-------------+---------+
-| member_id   | int     |
+| employee_id | int     |
 | name        | varchar |
+| salary      | int     |
 +-------------+---------+
+employee_id is the primary key for this table.
+Each row of this table indicates the employee ID, employee name, and salary.
+A company wants to divide the employees into teams such that all the members on each team have the same salary. The teams should follow these criteria:
 
-member_id is the primary key column for this table.
-Each row of this table indicates the name and the ID of a member.
+Each team should consist of at least two employees.
+All the employees on a team should have the same salary.
+All the employees of the same salary should be assigned to the same team.
+If the salary of an employee is unique, we do not assign this employee to any team.
+A team’s ID is assigned based on the rank of the team’s salary relative to the other teams’ salaries, where the team with the lowest salary has team_id = 1. Note that the salaries for employees not on a team are not included in this ranking.
+Write an SQL query to get the team_id of each employee that is in a team.
 
-Table: Visits
+Return the result table ordered by team_id in ascending order. In case of a tie, order it by employee_id in ascending order.
 
-+-------------+------+
-| Column Name | Type |
-+-------------+------+
-| visit_id    | int  |
-| member_id   | int  |
-| visit_date  | date |
-+-------------+------+
 
-visit_id is the primary key column for this table.
-member_id is a foreign key to member_id from the Members table.
-Each row of this table contains information about the date of 
-a visit to the store and the member who visited it.
+The query result format is in the following example:
 
-Table: Purchases
+Employees table:
++-------------+---------+--------+
+| employee_id | name    | salary |
++-------------+---------+--------+
+| 2           | Meir    | 3000   |
+| 3           | Michael | 3000   |
+| 7           | Addilyn | 7400   |
+| 8           | Juan    | 6100   |
+| 9           | Kannon  | 7400   |
++-------------+---------+--------+
 
-+----------------+------+
-| Column Name    | Type |
-+----------------+------+
-| visit_id       | int  |
-| charged_amount | int  |
-+----------------+------+
+Result table:
++-------------+---------+--------+---------+
+| employee_id | name    | salary | team_id |
++-------------+---------+--------+---------+
+| 2           | Meir    | 3000   | 1       |
+| 3           | Michael | 3000   | 1       |
+| 7           | Addilyn | 7400   | 2       |
+| 9           | Kannon  | 7400   | 2       |
++-------------+---------+--------+---------+
 
-visit_id is the primary key column for this table.
-visit_id is a foreign key to visit_id from the Visits table.
-Each row of this table contains information about the 
-amount charged in a visit to the store.
+Meir (employee_id=2) and Michael (employee_id=3) are in the same team because they have the same salary of 3000.
+Addilyn (employee_id=7) and Kannon (employee_id=9) are in the same team because they have the same salary of 7400.
+Juan (employee_id=8) is not included in any team because their salary of 6100 is unique (i.e. no other employee has the same salary).
+The team IDs are assigned as follows (based on salary ranking, lowest first):
+- team_id=1: Meir and Michael, salary of 3000
+- team_id=2: Addilyn and Kannon, salary of 7400
+Juan's salary of 6100 is not included in the ranking because they are not on a team.
 
-A store wants to categorize its members. There are three tiers:
+---------------------------------
 
-"Diamond": if the conversion rate is greater than or equal to 80.
-"Gold": if the conversion rate is greater than or equal to 50 and less than 80.
-"Silver": if the conversion rate is less than 50.
-"Bronze": if the member never visited the store.
+WITH salary_groups AS (
+    SELECT salary
+    FROM Employees
+    GROUP BY salary
+    HAVING COUNT(*) > 1
+),
+ranked_teams AS (
+    SELECT 
+        e.employee_id,
+        e.name,
+        e.salary,
+        DENSE_RANK() OVER (ORDER BY e.salary) AS team_id
+    FROM Employees e
+    JOIN salary_groups sg ON e.salary = sg.salary
+)
+SELECT *
+FROM ranked_teams
+ORDER BY team_id, employee_id;
 
-The conversion rate of a member is 
-(100 * total number of purchases for the member)/total number of visits for the member.
+-----------------------------
+from pyspark.sql import functions as F
+from pyspark.sql import Window
 
-Write an SQL query to report the id, the name, and the category of each member.
+salary_groups_df = (
+    employees_df
+    .groupBy("salary")
+    .agg(F.count("*").alias("cnt"))
+    .filter(F.col("cnt") > 1)
+    .select("salary")
+)
 
-Return the result table in any order.
+eligible_employees_df = (
+    employees_df
+    .join(salary_groups_df, "salary", "inner")
+)
 
-The query result format is in the following example.
+window_spec = Window.orderBy("salary")
 
-Example 1:
-
-Input: 
-Members table:
-+-----------+---------+
-| member_id | name    |
-+-----------+---------+
-| 9         | Alice   |
-| 11        | Bob     |
-| 3         | Winston |
-| 8         | Hercy   |
-| 1         | Narihan |
-+-----------+---------+
-Visits table:
-+----------+-----------+------------+
-| visit_id | member_id | visit_date |
-+----------+-----------+------------+
-| 22       | 11        | 2021-10-28 |
-| 16       | 11        | 2021-01-12 |
-| 18       | 9         | 2021-12-10 |
-| 19       | 3         | 2021-10-19 |
-| 12       | 11        | 2021-03-01 |
-| 17       | 8         | 2021-05-07 |
-| 21       | 9         | 2021-05-12 |
-+----------+-----------+------------+
-
-Purchases table:
-+----------+----------------+
-| visit_id | charged_amount |
-+----------+----------------+
-| 12       | 2000           |
-| 18       | 9000           |
-| 17       | 7000           |
-+----------+----------------+
-Output: 
-+-----------+---------+----------+
-| member_id | name    | category |
-+-----------+---------+----------+
-| 1         | Narihan | Bronze   |
-| 3         | Winston | Silver   |
-| 8         | Hercy   | Diamond  |
-| 9         | Alice   | Gold     |
-| 11        | Bob     | Silver   |
-+-----------+---------+----------+
-
-Explanation: 
-- User Narihan with id = 1 did not make any visits to the store. She gets a Bronze category.
-- User Winston with id = 3 visited the store one time and did not purchase anything. The conversion rate = (100 * 0) / 1 = 0. He gets a Silver category.
-- User Hercy with id = 8 visited the store one time and purchased one time. The conversion rate = (100 * 1) / 1 = 1. He gets a Diamond category.
-- User Alice with id = 9 visited the store two times and purchased one time. The conversion rate = (100 * 1) / 2 = 50. She gets a Gold category.
-- User Bob with id = 11 visited the store three times and purchased one time. The conversion rate = (100 * 1) / 3 = 33.33. He gets a Silver category.
+ranked_teams_df = (
+    eligible_employees_df
+    .withColumn("team_id", F.dense_rank().over(window_spec))
+    .select("employee_id", "name", "salary", "team_id")
+    .orderBy("team_id", "employee_id")
+)

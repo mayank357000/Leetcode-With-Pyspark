@@ -1,0 +1,85 @@
+180. Consecutive Numbers
+Table: Logs
+
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| id          | int     |
+| num         | varchar |
++-------------+---------+
+In SQL, id is the primary key for this table.
+id is an auto increment column starting from 1.
+ 
+Find all numbers that appear at least three times consecutively.
+
+Return the result table in any order.
+
+The result format is in the following example.
+
+Example 1:
+
+Input: 
+Logs table:
++----+-----+
+| id | num |
++----+-----+
+| 1  | 1   |
+| 2  | 1   |
+| 3  | 1   |
+| 4  | 2   |
+| 5  | 1   |
+| 6  | 2   |
+| 7  | 2   |
++----+-----+
+
+Output: 
++-----------------+
+| ConsecutiveNums |
++-----------------+
+| 1               |
++-----------------+
+Explanation: 1 is the only number that appears consecutively for at least three times.
+
+--------------------------------------
+here this is not our rownumber based question bro, id-num can be same for many
+-----------------------------------
+
+SELECT DISTINCT L1.num AS ConsecutiveNums
+FROM Logs L1
+JOIN Logs L2 ON L1.id = L2.id - 1
+JOIN Logs L3 ON L2.id = L3.id - 1
+WHERE L1.num = L2.num AND L2.num = L3.num;
+
+OR
+
+SELECT DISTINCT num AS ConsecutiveNums
+FROM (
+    SELECT num,
+           LEAD(num, 1) OVER (ORDER BY id) AS nxt1,
+           LEAD(num, 2) OVER (ORDER BY id) AS nxt2
+    FROM Logs
+) tmp
+WHERE num = nxt1 AND num = nxt2;
+
+------------------------
+
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+w = Window.orderBy("id")
+
+df_lagged = df.withColumn("prev1", F.lag("num", 1).over(w)) \
+              .withColumn("prev2", F.lag("num", 2).over(w))
+
+consec = df_lagged.filter((F.col("num") == F.col("prev1")) & (F.col("num") == F.col("prev2"))) \
+                  .select("num").distinct() \
+                  .withColumnRenamed("num", "ConsecutiveNums")
+
+OR
+
+df_leads = df.withColumn("next1", F.lead("num", 1).over(w)) \
+             .withColumn("next2", F.lead("num", 2).over(w))
+
+consec_lead = df_leads.filter((F.col("num") == F.col("next1")) & (F.col("num") == F.col("next2"))) \
+                      .select("num").distinct() \
+                      .withColumnRenamed("num", "ConsecutiveNums")

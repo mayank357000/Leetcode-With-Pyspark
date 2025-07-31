@@ -100,3 +100,105 @@ Explanation:
 - User Hercy with id = 8 visited the store one time and purchased one time. The conversion rate = (100 * 1) / 1 = 1. He gets a Diamond category.
 - User Alice with id = 9 visited the store two times and purchased one time. The conversion rate = (100 * 1) / 2 = 50. She gets a Gold category.
 - User Bob with id = 11 visited the store three times and purchased one time. The conversion rate = (100 * 1) / 3 = 33.33. He gets a Silver category.
+
+-------------------
+great use count(col) check not null values count in col, but count(*) not null records count
+-------------------
+
+WITH conversion_rate_cte AS (
+    SELECT 
+        v.member_id,
+        SUM(CASE WHEN p.visit_id IS NOT NULL THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS conversion_rate
+    FROM Visits v
+    LEFT JOIN Purchases p ON v.visit_id = p.visit_id
+    GROUP BY v.member_id
+)
+
+SELECT 
+    m.member_id,
+    m.name,
+    CASE 
+        WHEN cr.member_id IS NULL THEN 'Bronze'
+        WHEN cr.conversion_rate >= 80 THEN 'Diamond'
+        WHEN cr.conversion_rate >= 50 THEN 'Gold'
+        ELSE 'Silver'
+    END AS category
+FROM Members m
+LEFT JOIN conversion_rate_cte cr ON m.member_id = cr.member_id
+
+or
+
+WITH visit_stats AS (
+    SELECT v.member_id,
+           COUNT(*) AS total_visits,
+           COUNT(p.visit_id) AS total_purchases
+    FROM Visits v
+    LEFT JOIN Purchases p ON v.visit_id = p.visit_id
+    GROUP BY v.member_id
+)
+
+SELECT m.member_id,
+       m.name,
+       CASE
+           WHEN vs.member_id IS NULL THEN 'Bronze'
+           WHEN (100.0 * vs.total_purchases / vs.total_visits) >= 80 THEN 'Diamond'
+           WHEN (100.0 * vs.total_purchases / vs.total_visits) >= 50 THEN 'Gold'
+           ELSE 'Silver'
+       END AS category
+FROM Members m
+LEFT JOIN visit_stats vs ON m.member_id = vs.member_id;
+
+--------------------------------
+
+from pyspark.sql import functions as F
+
+# Visit stats: total visits and purchases per member
+visit_stats = (
+    visits_df.alias("v")
+    .join(purchases_df.alias("p"), F.col("v.visit_id") == F.col("p.visit_id"), "left")
+    .groupBy("v.member_id")
+    .agg(
+        F.count("v.visit_id").alias("total_visits"),
+        F.count("p.visit_id").alias("total_purchases")
+    )
+)
+
+# Members with categories
+result_df = (
+    members_df.alias("m")
+    .join(visit_stats.alias("vs"), "member_id", "left")
+    .withColumn(
+        "category",
+        F.when(F.col("vs.member_id").isNull(), "Bronze")
+         .when((F.col("total_purchases") * 100.0 / F.col("total_visits")) >= 80, "Diamond")
+         .when((F.col("total_purchases") * 100.0 / F.col("total_visits")) >= 50, "Gold")
+         .otherwise("Silver")
+    )
+    .select("member_id", "name", "category")
+)
+
+or
+
+from pyspark.sql import functions as F
+
+conversion_rate_cte = (
+    visits_df.alias("v")
+    .join(purchases_df.alias("p"), F.col("v.visit_id") == F.col("p.visit_id"), "left")
+    .groupBy("v.member_id")
+    .agg(
+        (F.sum(F.when(F.col("p.visit_id").isNotNull(), 1).otherwise(0)) * 100.0 / F.count("v.visit_id")).alias("conversion_rate")
+    )
+)
+
+result_df = (
+    members_df.alias("m")
+    .join(conversion_rate_cte.alias("cr"), "member_id", "left")
+    .withColumn(
+        "category",
+        F.when(F.col("cr.member_id").isNull(), "Bronze")
+         .when(F.col("conversion_rate") >= 80, "Diamond")
+         .when(F.col("conversion_rate") >= 50, "Gold")
+         .otherwise("Silver")
+    )
+    .select("member_id", "name", "category")
+)
