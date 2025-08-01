@@ -1,11 +1,3 @@
-1990 - Count the Number of Experiments
-Posted on September 4, 2021
-2 minute read
-
-Welcome to Subscribe On Youtube
-
-Formatted question description: https://leetcode.ca/all/1990.html
-
 1990. Count the Number of Experiments
 Level
 Easy
@@ -25,7 +17,6 @@ platform is an enum with one of the values ('Android', 'IOS', 'Web').
 experiment_name is an enum with one of the values ('Reading', 'Sports', 'Programming').
 This table contains information about the ID of an experiment done with a random person, the platform used to do the experiment, and the name of the experiment.
 Write an SQL query to report the number of experiments done on each of the three platforms for each of the three given experiments. Notice that all the pairs of (platform, experiment) should be included in the output including the pairs with zero experiments.
-
 
 Return the result table in any order.
 
@@ -63,3 +54,73 @@ Explanation:
 On the platform "Android", we had only one "Reading" experiment.
 On the platform "IOS", we had one "Sports" experiment and one "Programming" experiment.
 On the platform "Web", we had two "Reading" experiments and one "Programming" experiment.
+
+-----------------------------------
+
+WITH DistinctPlatforms AS (
+    SELECT DISTINCT platform
+    FROM Experiments
+),
+DistinctExperiments AS (
+    SELECT DISTINCT experiment_name
+    FROM Experiments
+),
+AllCombinations AS (
+    SELECT p.platform, e.experiment_name
+    FROM DistinctPlatforms p
+    CROSS JOIN DistinctExperiments e
+)
+SELECT 
+    ac.platform,
+    ac.experiment_name,
+    COUNT(exp.experiment_id) AS num_experiments
+FROM AllCombinations ac
+LEFT JOIN Experiments exp
+    ON ac.platform = exp.platform
+   AND ac.experiment_name = exp.experiment_name
+GROUP BY ac.platform, ac.experiment_name;
+
+OR
+
+SELECT 
+    ac.platform,
+    ac.experiment_name,
+    SUM(CASE WHEN exp.experiment_id IS NOT NULL THEN 1 ELSE 0 END) AS num_experiments
+FROM AllCombinations ac
+LEFT JOIN Experiments exp
+    ON ac.platform = exp.platform
+   AND ac.experiment_name = exp.experiment_name
+GROUP BY ac.platform, ac.experiment_name;
+
+---------------------------------------------------
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import count
+
+platforms_df = df.select("platform").distinct()
+experiments_df = df.select("experiment_name").distinct()
+
+all_combinations = platforms_df.crossJoin(experiments_df)
+
+joined_df = (
+    all_combinations.join(
+        df,
+        on=["platform", "experiment_name"],
+        how="left"
+    )
+)
+
+result_df = (
+    joined_df.groupBy("platform", "experiment_name")
+             .agg(count("experiment_id").alias("num_experiments"))
+)
+
+result_df.show()
+
+OR
+
+from pyspark.sql.functions import when, sum as _sum
+
+result_df = (
+    joined_df.groupBy("platform", "experiment_name")
+             .agg(_sum(when(col("experiment_id").isNotNull(), 1).otherwise(0)).alias("num_experiments"))
+)
