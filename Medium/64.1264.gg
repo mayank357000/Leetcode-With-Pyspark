@@ -153,16 +153,12 @@ recommended_df = friend_likes_df.filter(col("is_user1") == 0).select("page_id").
 
 --------------------
 
-# Friends of user 1
 friends_df = friendship_df \
     .filter(col("user1_id") == 1).select(col("user2_id").alias("friend_id")) \
     .unionAll(friendship_df.filter(col("user2_id") == 1).select(col("user1_id").alias("friend_id")))
 
-# Pages liked by friends
 friend_likes_df = friends_df.join(likes_df, friends_df.friend_id == likes_df.user_id).select("page_id").distinct()
 
-# Pages liked by user 1
 user1_likes_df = likes_df.filter(col("user_id") == 1).select("page_id").distinct()
 
-# Recommend using EXCEPT
 recommended_df = friend_likes_df.exceptAll(user1_likes_df)

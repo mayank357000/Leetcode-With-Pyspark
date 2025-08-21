@@ -38,3 +38,30 @@ Result table:
 | 5    |
 | 6    |
 +------+
+
+------------------------------------------------------
+
+select distinct viewer_id as id
+from Views 
+group by view_date, viewer_id 
+having count(distinct article_id) >= 2
+order by viewer_id;
+
+----------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import countDistinct
+
+spark=SparkSession.builder.appName("dummy").getOrCreate()
+
+result = (df
+    .groupBy("view_date", "viewer_id")
+    .agg(countDistinct("article_id").alias("article_count"))  # Fixed missing quotation mark
+    .filter(col("article_count") >= 2)
+    .select("viewer_id")
+    .distinct()
+    .orderBy("viewer_id")
+    .withColumnRenamed("viewer_id", "id")
+)
+
+result.show()

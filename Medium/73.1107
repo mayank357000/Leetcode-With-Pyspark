@@ -45,3 +45,62 @@ Result table:
 +------------+-------------+
 Note that we only care about dates with non zero user count.
 The user with id 5 first logged in on 2019-03-01 so he's not counted on 2019-06-21.
+
+----------------------------
+to get first last, greatest smallest, row_number se pehle min/max bhi use koya ja skta hai
+----------------------------
+
+WITH FirstLogin AS (
+  SELECT user_id, activity_date,
+         ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY activity_date) AS rn
+  FROM Traffic
+  WHERE activity = 'login'
+)
+SELECT activity_date AS login_date, COUNT(DISTINCT user_id) AS user_count
+FROM FirstLogin
+WHERE rn = 1 AND activity_date BETWEEN DATE '2019-04-01' AND DATE '2019-06-30'
+GROUP BY activity_date
+ORDER BY activity_date;
+
+OR
+
+WITH FirstLogins AS (
+  SELECT user_id, MIN(activity_date) AS first_login_date
+  FROM Traffic
+  WHERE activity = 'login'
+  GROUP BY user_id
+)
+SELECT first_login_date AS login_date,
+       COUNT(*) AS user_count
+FROM FirstLogins
+WHERE first_login_date BETWEEN CURRENT_DATE - INTERVAL '90' DAY AND CURRENT_DATE
+GROUP BY first_login_date
+ORDER BY first_login_date;
+
+--------------------------------
+
+from datetime import datetime, timedelta
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+# Step 1: Convert string to Python date
+reference_date_str = '2019-06-30'
+reference_date = datetime.strptime(reference_date_str, '%Y-%m-%d').date()
+lower_bound_date = reference_date - timedelta(days=90)
+
+# Step 2: Use F.lit() to inject Python date objects into Spark filters
+# ROW_NUMBER-based logic
+window_spec = Window.partitionBy("user_id").orderBy("activity_date")
+
+first_login_df = (
+    df.filter(F.col("activity") == "login")
+      .withColumn("rn", F.row_number().over(window_spec))
+      .filter(F.col("rn") == 1)
+      .filter(
+          (F.col("activity_date") >= F.lit(lower_bound_date)) &
+          (F.col("activity_date") <= F.lit(reference_date))
+      )
+      .groupBy("activity_date")
+      .agg(F.countDistinct("user_id").alias("user_count"))
+      .orderBy("activity_date")
+)

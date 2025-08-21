@@ -1,11 +1,3 @@
-2394 - Employees With Deductions
-Posted on October 13, 2022
-2 minute read
-
-Welcome to Subscribe On Youtube
-
-Formatted question description: https://leetcode.ca/all/2394.html
-
 2394. Employees With Deductions
 Description
 Table: Employees
@@ -33,8 +25,6 @@ Table: Logs
 Each row of this table shows the time stamps for an employee. in_time is the time the employee started to work, and out_time is the time the employee ended work.
 All the times are in October 2022. out_time can be one day after in_time which means the employee worked after the midnight.
 
- 
-
 In a company, each employee must work a certain number of hours every month. Employees work in sessions. The number of hours an employee worked can be calculated from the sum of the number of minutes the employee worked in all of their sessions. The number of minutes in each session is rounded up.
 
 For example, if the employee worked for 51 minutes and 2 seconds in a session, we consider it 52 minutes.
@@ -43,8 +33,6 @@ Write an SQL query to report the IDs of the employees that will be deducted. In 
 Return the result table in any order.
 
 The query result format is in the following example.
-
- 
 
 Example 1:
 
@@ -87,3 +75,44 @@ Employee 2:
 Employee 3:
  - Did not work any session.
  - Employee 3 did not work their hours and will be deducted.
+
+ -------------------------
+
+ WITH WorkedHours AS (
+    SELECT 
+        employee_id,
+        SUM(CEIL(TIMESTAMPDIFF(MINUTE, in_time, out_time)))/60 as total_hours
+    FROM Logs
+    GROUP BY employee_id
+)
+SELECT e.employee_id
+FROM Employees e
+LEFT JOIN WorkedHours w ON e.employee_id = w.employee_id
+WHERE COALESCE(w.total_hours, 0) < e.needed_hours
+ORDER BY e.employee_id;
+
+-----------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import (ceil, unix_timestamp, sum, col, 
+                                 coalesce, lit)
+
+spark = SparkSession.builder.appName("EmployeeDeductions").getOrCreate()
+
+worked_minutes = (logs
+    .withColumn("minutes", 
+        ceil((unix_timestamp("out_time") - unix_timestamp("in_time")) / 60))
+    .groupBy("employee_id")
+    .agg(sum("minutes").alias("total_minutes"))
+    .withColumn("total_hours", col("total_minutes") / 60)
+)
+
+result = (employees
+    .join(worked_minutes, "employee_id", "left")
+    .withColumn("total_hours", coalesce(col("total_hours"), lit(0)))
+    .filter(col("total_hours") < col("needed_hours"))
+    .select("employee_id")
+    .orderBy("employee_id")
+)
+
+result.show()

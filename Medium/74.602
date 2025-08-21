@@ -1,0 +1,115 @@
+602. Friend Requests II: Who Has the Most Friends
+In social network like Facebook or Twitter, 
+people send friend requests and accept others' requests as well.
+ 
+Table request_accepted holds the data of friend acceptance, 
+while requester_id and accepter_id both are the id of a person.
+
+| requester_id | accepter_id | accept_date|
+|--------------|-------------|------------|
+| 1            | 2           | 2016_06-03 |
+| 1            | 3           | 2016-06-08 |
+| 2            | 3           | 2016-06-08 |
+| 3            | 4           | 2016-06-09 |
+Write a query to find the the people who has most friends and 
+the most friends number. For the sample data above, the result is:
+| id | num |
+|----|-----|
+| 3  | 3   |
+Note:
+It is guaranteed there is only 1 people having the most friends.
+The friend request could only been accepted once, which mean there
+ is no multiple records with the same requester_id and accepter_id value.
+ 
+
+Explanation:
+The person with id '3' is a friend of people '1', '2' and '4', 
+so he has 3 friends in total, which is the most number than any others.
+ 
+
+Follow-up:
+In the real world, multiple people could have the same most 
+number of friends, can you find all these people in this case?
+
+-----------------------------
+don't use single col union , because you might miss the count due to duplicay removal
+and using union all might not filter rows which might be duplicate
+so use pairs and union and then grp by id
+
+--------------------------
+
+also koi ek max of table ko as a filter of other table then join with agg max table and use max col
+------------------------
+WITH all_friend_pairs AS (
+    SELECT requester_id AS id, accepter_id AS friend_id FROM request_accepted
+    UNION
+    SELECT accepter_id AS id, requester_id AS friend_id FROM request_accepted
+)
+SELECT id, COUNT(*) AS num
+FROM all_friend_pairs
+GROUP BY id
+ORDER BY num DESC
+LIMIT 1;
+
+#If want to get max friends all if multiple
+WITH all_friend_pairs AS (
+    SELECT requester_id AS id, accepter_id AS friend_id FROM request_accepted
+    UNION
+    SELECT accepter_id AS id, requester_id AS friend_id FROM request_accepted
+),
+friend_counts AS (
+    SELECT id, COUNT(*) AS num
+    FROM all_friend_pairs
+    GROUP BY id
+),
+max_count AS (
+    SELECT MAX(num) AS max_num FROM friend_counts
+)
+SELECT fc.id, fc.num
+FROM friend_counts fc
+JOIN max_count mc ON fc.num = mc.max_num;
+
+----------------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, countDistinct, lit, max as max_
+
+spark = SparkSession.builder.getOrCreate()
+
+data = [
+    (1, 2, '2016-06-03'),
+    (1, 3, '2016-06-08'),
+    (2, 3, '2016-06-08'),
+    (3, 4, '2016-06-09')
+]
+columns = ['requester_id', 'accepter_id', 'accept_date']
+df = spark.createDataFrame(data, columns)
+
+# Step 1: Create bidirectional friend pairs using withColumn
+df1 = (
+    df.withColumn("id", col("requester_id"))
+      .withColumn("friend_id", col("accepter_id"))
+      .select("id", "friend_id")
+)
+
+df2 = (
+    df.withColumn("id", col("accepter_id"))
+      .withColumn("friend_id", col("requester_id"))
+      .select("id", "friend_id")
+)
+
+friend_pairs = df1.union(df2)
+
+friend_counts = (
+    friend_pairs.groupBy("id")
+    .agg(countDistinct("friend_id").alias("num"))
+)
+
+max_count = friend_counts.agg(max_("num").alias("max_num"))
+
+most_friends = (
+    friend_counts.join(max_count, friend_counts["num"] == max_count["max_num"])
+    .select("id", "num")
+)
+
+most_friends.show()

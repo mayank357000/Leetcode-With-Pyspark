@@ -1,0 +1,167 @@
+1843. Suspicious Bank Accounts
+SQL Schema
+Table: Accounts
+
++----------------+------+
+| Column Name    | Type |
++----------------+------+
+| account_id     | int  |
+| max_income     | int  |
++----------------+------+
+account_id is the primary key for this table.
+Each row contains information about the
+maximum monthly income for one bank account.
+
+Table: Transactions
+
++----------------+----------+
+| Column Name    | Type     |
++----------------+----------+
+| transaction_id | int      |
+| account_id     | int      |
+| type           | ENUM     |
+| amount         | int      |
+| day            | datetime |
++----------------+----------+
+transaction_id is the primary key for this table.
+Each row contains information about one transaction.
+type is ENUM ('Creditor','Debtor') where 'Creditor' means the user deposited money into their account and 'Debtor' means the user withdrew money from their account.
+amount is the amount of money depositied/withdrawn during the transaction.
+ 
+
+Write an SQL query to report the IDs of all suspicious bank accounts.
+
+A bank account is suspicious if the total income exceeds the max_income for this account for two or more consecutive months.
+The total income of an account in some month is the sum of all its deposits in that month (i.e., transactions of the type 'Creditor').
+
+Return the result table in ascending order by transaction_id.
+
+The query result format is in the following example:
+
+ 
+
+Accounts table:
++------------+------------+
+| account_id | max_income |
++------------+------------+
+| 3          | 21000      |
+| 4          | 10400      |
++------------+------------+
+
+Transactions table:
++----------------+------------+----------+--------+---------------------+
+| transaction_id | account_id | type     | amount | day                 |
++----------------+------------+----------+--------+---------------------+
+| 2              | 3          | Creditor | 107100 | 2021-06-02 11:38:14 |
+| 4              | 4          | Creditor | 10400  | 2021-06-20 12:39:18 |
+| 11             | 4          | Debtor   | 58800  | 2021-07-23 12:41:55 |
+| 1              | 4          | Creditor | 49300  | 2021-05-03 16:11:04 |
+| 15             | 3          | Debtor   | 75500  | 2021-05-23 14:40:20 |
+| 10             | 3          | Creditor | 102100 | 2021-06-15 10:37:16 |
+| 14             | 4          | Creditor | 56300  | 2021-07-21 12:12:25 |
+| 19             | 4          | Debtor   | 101100 | 2021-05-09 15:21:49 |
+| 8              | 3          | Creditor | 64900  | 2021-07-26 15:09:56 |
+| 7              | 3          | Creditor | 90900  | 2021-06-14 11:23:07 |
++----------------+------------+----------+--------+---------------------+
+
+Result table:
++------------+
+| account_id |
++------------+
+| 3          |
++------------+
+
+For account 3:
+- In 6-2021, the user had an income of 107100 + 102100 + 90900 = 300100.
+- In 7-2021, the user had an income of 64900.
+We can see that the income exceeded the max income of 21000 for two consecutive months, so we include 3 in the result table.
+
+For account 4:
+- In 5-2021, the user had an income of 49300.
+- In 6-2021, the user had an income of 10400.
+- In 7-2021, the user had an income of 56300.
+We can see that the income exceeded the max income in May and July, but not in June. Since the account
+
+-------------
+consecutive ke liye ya toh self join, ya lead lag type kuch
+------------------
+
+WITH MonthlyIncome AS (
+  SELECT 
+    account_id,
+    DATE_FORMAT(day, '%Y-%m') AS ym,
+    SUM(amount) AS monthly_income
+  FROM Transactions
+  WHERE type = 'Creditor'
+  GROUP BY account_id, DATE_FORMAT(day, '%Y-%m')
+),
+FlaggedMonths AS (
+  SELECT 
+    m.account_id,
+    m.ym,
+    m.monthly_income,
+    a.max_income
+  FROM MonthlyIncome m
+  JOIN Accounts a ON m.account_id = a.account_id
+  WHERE m.monthly_income > a.max_income
+),
+WithLag AS (
+  SELECT 
+    account_id,
+    ym,
+    LAG(ym) OVER (PARTITION BY account_id ORDER BY ym) AS prev_ym
+  FROM FlaggedMonths
+),
+ConsecutiveFlags AS (
+  SELECT account_id
+  FROM WithLag
+  WHERE DATEDIFF(STR_TO_DATE(ym, '%Y-%m-01'), STR_TO_DATE(prev_ym, '%Y-%m-01')) = 30
+     OR TIMESTAMPDIFF(MONTH, STR_TO_DATE(prev_ym, '%Y-%m-01'), STR_TO_DATE(ym, '%Y-%m-01')) = 1
+),
+Result AS (
+  SELECT DISTINCT account_id
+  FROM ConsecutiveFlags
+)
+SELECT account_id
+FROM Result
+ORDER BY account_id;
+
+------------------------------------
+
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+credit_df = df.filter(F.col("type") == "Creditor")
+
+monthly_income_df = (
+    credit_df.withColumn("year_month", F.date_format("day", "yyyy-MM"))
+             .groupBy("account_id", "year_month")
+             .agg(F.sum("amount").alias("monthly_income"))
+)
+
+joined_df = (
+    monthly_income_df.join(accounts_df, "account_id")
+                     .filter(F.col("monthly_income") > F.col("max_income"))
+)
+
+window_spec = Window.partitionBy("account_id").orderBy("year_month")
+
+lag_month = F.lag("year_month").over(window_spec)
+
+flagged_with_lag = (
+    joined_df.withColumn("prev_month", lag_month)
+             .withColumn("month_diff", 
+                         F.month(F.to_date("year_month", "yyyy-MM")) - 
+                         F.month(F.to_date("prev_month", "yyyy-MM")) +
+                         12 * (F.year(F.to_date("year_month", "yyyy-MM")) - 
+                               F.year(F.to_date("prev_month", "yyyy-MM")))
+             )
+)
+suspicious_accounts_df = (
+    flagged_with_lag.filter(F.col("month_diff") == 1)
+                    .select("account_id")
+                    .distinct()
+                    .orderBy("account_id")
+)
+
+suspicious_accounts_df.show()
