@@ -1,0 +1,20 @@
+Write an SQL query to retrieve the top 2 highest-paid employees from each department.
+
+SELECT id, name, department, salary
+FROM (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS rn
+    FROM employees
+) ranked
+WHERE rn <= 2;
+
+-----------
+
+from pyspark.sql import Window
+from pyspark.sql.functions import row_number
+
+window_spec = Window.partitionBy("department").orderBy(df["salary"].desc())
+
+top_2_employees = df.withColumn("rank", row_number().over(window_spec)) \
+                    .filter("rank <= 2") \
+                    .select("id", "name", "department", "salary")

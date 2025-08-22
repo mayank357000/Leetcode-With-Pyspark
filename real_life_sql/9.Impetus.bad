@@ -1,0 +1,21 @@
+write query to find out 2nd highest salary without limit or top
+
+--------------------------
+
+SELECT MAX(salary) AS second_highest_salary
+FROM employees
+WHERE salary < (
+    SELECT MAX(salary) FROM employees
+);
+
+-------------------------------
+
+from pyspark.sql.functions import col, max as spark_max
+
+max_salary = df.select(spark_max("salary")).collect()[0][0]
+
+second_highest_salary = df.filter(col("salary") < max_salary) \
+                          .select(spark_max("salary")) \
+                          .collect()[0][0]
+
+print("Second highest salary:", second_highest_salary)

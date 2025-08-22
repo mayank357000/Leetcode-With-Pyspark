@@ -1,0 +1,27 @@
+eid	ename	status	ptime
+1	  a   	          in   	10:00
+2	  b               in   	11:00
+1	  a   	          out	11:00
+2	  b   	          out	11:30
+3	  c   	          in   	11:00
+1	  a   	          in   	12:00
+Write a Query to find out the employee who are in the office.
+
+----------------------------------
+SELECT eid, ename
+FROM (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY eid ORDER BY ptime DESC) AS rn
+    FROM attendance
+) latest
+WHERE rn = 1 AND status = 'in';
+
+------------------------------
+
+from pyspark.sql.functions import col, row_number
+from pyspark.sql.window import Window
+
+window_spec = Window.partitionBy("eid").orderBy(col("ptime").desc())
+
+df = attendance_df.withColumn("rnk", row_number().over(window_spec)) \
+                  .filter((col("rnk") == 1) & (col("status") == "in"))

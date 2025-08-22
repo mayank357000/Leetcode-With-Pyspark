@@ -1,0 +1,23 @@
+Write a query to find the most recent order placed by each customer, 
+including the ORDER_ID, ORDER_DATE, and TOTAL_AMOUNT
+
+--------------
+
+SELECT ORDER_ID, CUSTOMER_ID, ORDER_DATE, TOTAL_AMOUNT
+FROM (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY CUSTOMER_ID ORDER BY ORDER_DATE DESC) AS rn
+    FROM orders
+) ranked
+WHERE rn = 1;
+
+-----------------------
+
+from pyspark.sql import Window
+from pyspark.sql.functions import row_number
+
+window_spec = Window.partitionBy("CUSTOMER_ID").orderBy(df["ORDER_DATE"].desc())
+
+latest_orders = df.withColumn("rn", row_number().over(window_spec)) \
+                  .filter("rn == 1") \
+                  .select("ORDER_ID", "CUSTOMER_ID", "ORDER_DATE", "TOTAL_AMOUNT")

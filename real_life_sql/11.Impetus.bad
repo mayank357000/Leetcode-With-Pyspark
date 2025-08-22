@@ -1,0 +1,12 @@
+Need to find out data which is present in Employee_stg table
+but not present in Employee_Tgt table
+Employee_stg (id,name) (1 John) (2 Patrick) (3 Samson)
+Employee_Tgt (id name) (1 John) (2 Patrick) (3 Sameer)
+
+-------------------------
+
+SELECT s.id, s.name
+FROM Employee_stg s
+LEFT JOIN Employee_Tgt t
+  ON s.id = t.id AND s.name = t.name
+WHERE t.id IS NULL;

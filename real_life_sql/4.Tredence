@@ -1,0 +1,31 @@
+id	val
+1	A
+1	A
+2	A
+2	B
+3	B
+3	B
+4	A
+4	A
+Write a query to find out id which are associate with only one value
+
+----------------------------------
+SELECT id
+FROM your_table
+GROUP BY id
+HAVING COUNT(DISTINCT val) = 1;
+
+--------------------------------
+from pyspark.sql.functions import countDistinct
+
+result = df.groupBy("id") \
+    .agg(countDistinct("val").alias("val_count")) \
+    .filter("val_count = 1") \
+    .select("id")
+
+---Follow Up, id of those who have val='a', min works since single value only
+
+SELECT id
+FROM your_table
+GROUP BY id
+HAVING COUNT(DISTINCT val) = 1 AND MIN(val) = 'A';

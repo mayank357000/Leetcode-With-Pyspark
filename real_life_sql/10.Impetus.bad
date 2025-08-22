@@ -1,0 +1,22 @@
+Employee_ID [8,7,8,8,8,7,7,8,8,7] add 10 where Employee_ID is 8 
+and subtract 5 where Employee_ID is 7 . In single statement
+
+SELECT 
+  Employee_ID,
+  CASE 
+    WHEN Employee_ID = 8 THEN Employee_ID + 10
+    WHEN Employee_ID = 7 THEN Employee_ID - 5
+    ELSE Employee_ID
+  END AS adjusted_id
+FROM employees;
+
+--------------------
+
+from pyspark.sql.functions import col, when
+
+df = df.withColumn(
+    "adjusted_value",
+    when(col("Employee_ID") == 8, 10)
+    .when(col("Employee_ID") == 7, -5)
+    .otherwise(0)
+)

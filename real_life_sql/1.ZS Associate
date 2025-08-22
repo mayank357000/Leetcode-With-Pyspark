@@ -1,0 +1,62 @@
+You have a table sales(sale_id, product_id, sale_date, amount) 
+and products(product_id, category). 
+Find categories where sales in 2023 increased compared to 2022
+
+-----------------------------------
+get 2023 sales and 2022 sales, so that we can 
+compare those ids which exists in both with join
+----------------------------------
+-- Sales in 2022
+WITH sales_2022 AS (
+    SELECT
+        p.category,
+        SUM(s.amount) AS total_2022
+    FROM
+        sales s
+    JOIN
+        products p ON s.product_id = p.product_id
+    WHERE
+        EXTRACT(YEAR FROM s.sale_date) = 2022
+    GROUP BY
+        p.category
+),
+
+-- Sales in 2023
+sales_2023 AS (
+    SELECT
+        p.category,
+        SUM(s.amount) AS total_2023
+    FROM
+        sales s
+    JOIN
+        products p ON s.product_id = p.product_id
+    WHERE
+        EXTRACT(YEAR FROM s.sale_date) = 2023
+    GROUP BY
+        p.category
+)
+
+-- Compare only categories present in both years
+SELECT
+    s23.category
+FROM
+    sales_2022 s22
+JOIN
+    sales_2023 s23 ON s22.category = s23.category
+WHERE
+    s23.total_2023 > s22.total_2022;
+---------------------------
+from pyspark.sql.functions import year, sum as _sum
+
+sales_2022 = sales_df.filter(year("sale_date") == 2022) \
+    .join(products_df, "product_id") \
+    .groupBy("category") \
+    .agg(_sum("amount").alias("total_2022"))
+
+sales_2023 = sales_df.filter(year("sale_date") == 2023) \
+    .join(products_df, "product_id") \
+    .groupBy("category") \
+    .agg(_sum("amount").alias("total_2023"))
+
+result = sales_2023.join(sales_2022, "category") \
+    .filter("total_2023 > total_2022")

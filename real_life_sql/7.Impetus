@@ -1,0 +1,44 @@
+Write a SQL Query to give output like that from Input like below -
+Input
+1
+2
+3
+Output
+1
+2
+2
+3
+3
+3
+
+------------------------------
+
+SELECT a.value
+FROM input_table a
+JOIN input_table b ON b.value <= a.value
+ORDER BY a.value;
+
+OR RCTE
+
+------------------------------
+
+from pyspark.sql.functions import col, explode, sequence, lit
+
+df = spark.createDataFrame([(1,), (2,), (3,)], ["value"])
+
+df_expanded = df.withColumn("seq", sequence(lit(1), col("value"))) \
+                .select(col("value"), explode(col("seq")).alias("dummy")) \
+                .select("value") \
+                .orderBy("value")
+
+df_expanded.show()
+
+OR
+
+df = spark.createDataFrame([(1,), (2,), (3,)], ["value"])
+
+df_joined = df.alias("a").join(df.alias("b"), col("b.value") <= col("a.value")) \
+    .select(col("a.value")) \
+    .orderBy("a.value")
+
+df_joined.show()

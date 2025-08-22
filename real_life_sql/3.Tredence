@@ -1,0 +1,39 @@
+there is table transcation where we have all the transcation details.
+. find out top 5 customers by spending.
+. From this top 5 give me customer at index 2 and 3
+
+----------------------------
+
+WITH ranked_customers AS (
+    SELECT
+        customer_id,
+        SUM(amount) AS total_spent,
+        ROW_NUMBER() OVER (ORDER BY SUM(amount) DESC) AS rank
+    FROM
+        transaction
+    GROUP BY
+        customer_id
+)
+SELECT
+    customer_id,
+    total_spent
+FROM
+    ranked_customers
+WHERE
+    rank IN (2, 3)
+ORDER BY
+    rank;
+
+-----------------------------
+
+from pyspark.sql.functions import sum as _sum, row_number
+from pyspark.sql.window import Window
+
+customer_spending = transaction_df.groupBy("customer_id") \
+    .agg(_sum("amount").alias("total_spent"))
+
+window_spec = Window.orderBy(customer_spending["total_spent"].desc())
+ranked_customers = customer_spending.withColumn("rank", row_number().over(window_spec))
+
+result = ranked_customers.filter(ranked_customers["rank"].isin([2, 3])) \
+    .orderBy("rank")
