@@ -10,7 +10,8 @@ Table: Logs
 id is the primary key for this table.
 Each row of this table contains the ID in a log Table.
 
-Since some IDs have been removed from Logs. Write an SQL query to find the start and end number of continuous ranges in table Logs.
+Since some IDs have been removed from Logs.
+ Write an SQL query to find the start and end number of continuous ranges in table Logs.
 
 Order the result table by start_id.
 

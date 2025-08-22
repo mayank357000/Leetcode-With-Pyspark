@@ -108,26 +108,17 @@ ORDER BY
     customer_id ASC,
     order_date DESC;
 ------------------------------------
-
 from pyspark.sql import Window
 from pyspark.sql.functions import row_number
 
-# Assume customers_df and orders_df are already loaded DataFrames
-
-# Join Customers and Orders
 joined_df = orders_df.join(customers_df, on="customer_id")
 
-# Define window spec: partition by customer, order by recent order_date
 window_spec = Window.partitionBy("customer_id").orderBy(joined_df["order_date"].desc())
 
-# Add row_number for ranking
 ranked_df = joined_df.withColumn("rn", row_number().over(window_spec))
 
-# Filter top 3 orders per customer
 top_orders_df = ranked_df.filter(ranked_df["rn"] <= 3)
 
-# Final sorting as per spec
 result_df = top_orders_df.orderBy("name", "customer_id", top_orders_df["order_date"].desc())
 
-# Select final columns
 final_df = result_df.select("name", "customer_id", "order_id", "order_date")

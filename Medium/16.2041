@@ -11,7 +11,8 @@ Table: Candidates
 | interview_id | int      |
 +--------------+----------+
 candidate_id is the primary key column for this table.
-Each row of this table indicates the name of a candidate, their number of years of experience, and their interview ID.
+Each row of this table indicates the name of a candidate,
+their number of years of experience, and their interview ID.
 
 Table: Rounds
 
@@ -26,7 +27,9 @@ Table: Rounds
 Each row of this table indicates the score of one round of an interview.
  
 
-Write an SQL query to report the IDs of the candidates who have at least two years of experience and the sum of the score of their interview rounds is strictly greater than 15.
+Write an SQL query to report the IDs of the candidates who have at least 
+two years of experience and the sum of the score of their interview rounds
+is strictly greater than 15.
 
 Return the result table in any order.
 

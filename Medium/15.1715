@@ -73,6 +73,8 @@ Total number of apples = 6 + 24 + 27 + 27 + 17 + 14 + 36 = 151
 Total number of oranges = 15 + 25 + 8 + 28 + 15 + 15 + 17 = 123
 
 ---------------------
+use coalesce when col can be null
+-------------------------
 
 SELECT 
     SUM(b.apple_count + COALESCE(c.apple_count, 0)) AS apple_count,

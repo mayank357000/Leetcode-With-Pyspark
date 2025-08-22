@@ -8,15 +8,18 @@ Table: Seat
 | id          | int     |
 | student     | varchar |
 +-------------+---------+
-id is the primary key (unique value) column for this table.
-Each row of this table indicates the name and the ID of a student.
-The ID sequence always starts from 1 and increments continuously.
+
+id is the primary key (unique value) column for this table
+Each row of this table indicates the name and the ID of a student
+The ID sequence always starts from 1 and increments continuously
  
-Write a solution to swap the seat id of every two consecutive students. If the number of students is odd, the id of the last student is not swapped.
+Write a solution to swap the seat id of every two consecutive students
+If the number of students is odd,
+the id of the last student is not swapped
 
-Return the result table ordered by id in ascending order.
+Return the result table ordered by id in ascending order
 
-The result format is in the following example.
+The result format is in the following example
 
  
 
@@ -55,3 +58,26 @@ END,
     student
 FROM Seat
 ORDER BY id;
+
+--------------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, when, count, lit
+
+spark = SparkSession.builder.getOrCreate()
+
+data = [(1, "Alice"), (2, "Bob"), (3, "Charlie"), (4, "David"), (5, "Eva")]
+seat_df = spark.createDataFrame(data, ["id", "student"])
+
+total_count = seat_df.count()
+
+transformed_df = seat_df.withColumn(
+    "new_id",
+    when((col("id") == lit(total_count)) & (col("id") % 2 == 1), col("id"))
+    .when(col("id") % 2 == 1, col("id") + 1)
+    .when(col("id") % 2 == 0, col("id") - 1)
+)
+
+result_df = transformed_df.select("new_id", "student").orderBy("new_id")
+
+result_df.show()

@@ -9,9 +9,11 @@ Table: Friends
 | name          | varchar |
 | activity      | varchar |
 +---------------+---------+
+
 id is the id of the friend and primary key for this table.
 name is the name of the friend.
 activity is the name of the activity which the friend takes part in
+
 Table: Activities
 
 +---------------+---------+

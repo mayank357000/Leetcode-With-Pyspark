@@ -8,8 +8,11 @@ Table: Products
 | new_price     | int     |
 | change_date   | date    |
 +---------------+---------+
-(product_id, change_date) is the primary key (combination of columns with unique values) of this table.
-Each row of this table indicates that the price of some product was changed to a new price at some date.
+
+(product_id, change_date) is the primary key 
+(combination of columns with unique values) of this table.
+Each row of this table indicates that the price of 
+some product was changed to a new price at some date.
 Initially, all products have price 10.
 
 Write a solution to find the prices of all products on the date 2019-08-16.
@@ -43,7 +46,8 @@ Output:
 +------------+-------+
 
 ------------------------------------------------
-there can be some records which are only after 16 having changing price so their val should be 10
+there can be some records which are only after
+16 having changing price so their val should be 10
 ------------------------------------------------
 
 WITH latest_price AS (

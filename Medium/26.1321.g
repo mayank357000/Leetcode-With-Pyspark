@@ -13,8 +13,9 @@ Table: Customer
 
 (customer_id, visited_on) is the primary key for this table.
 This table contains data about customer transactions in a restaurant.
-visited_on is the date on which the customer with ID (customer_id) have visited the restaurant.
-amount is the total paid by a customer.
+visited_on is the date on which the customer with ID (customer_id)
+have visited the restaurant
+amount is the total paid by a customer
 
 You are the restaurant owner and you want to analyze a possible expansion (there will be at least one customer every day).
 
@@ -62,30 +63,36 @@ Result table:
 there can be more than one customer a day so sum them before winodw function apply
 dense rank se filter kiya those ho complted 7 days or not 
 --------------------------------------
-WITH cte AS (
-    SELECT 
-        visited_on,
-        SUM(amount) AS daily_amount
+WITH daily AS (
+    SELECT visited_on, SUM(amount) AS daily_amount
     FROM Customer
     GROUP BY visited_on
 ),
-ranked AS (
-    SELECT *,
-        DENSE_RANK() OVER (ORDER BY visited_on) AS rnk
-    FROM cte
+windowed AS (
+    SELECT visited_on,
+           SUM(daily_amount) OVER (ORDER BY visited_on ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS amount,
+           ROUND(SUM(daily_amount) OVER (ORDER BY visited_on ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) / 7.0, 2) AS average_amount,
+           DENSE_RANK() OVER (ORDER BY visited_on) AS rnk
+    FROM daily
 )
-SELECT 
-    visited_on,
-    SUM(daily_amount) OVER (
-        ORDER BY visited_on 
-        ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
-    ) AS amount,
-    ROUND(
-        SUM(daily_amount) OVER (
-            ORDER BY visited_on 
-            ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
-        ) / 7.0, 2
-    ) AS average_amount
-FROM ranked
+SELECT visited_on, amount, average_amount
+FROM windowed
 WHERE rnk >= 7
 ORDER BY visited_on;
+
+---------------------------------------
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+daily_df = customer_df.groupBy("visited_on") \
+    .agg(F.sum("amount").alias("daily_amount"))
+
+window_spec = Window.orderBy("visited_on").rowsBetween(-6, 0)
+
+result_df = daily_df.withColumn("amount", F.sum("daily_amount").over(window_spec)) \
+    .withColumn("average_amount", F.round(F.col("amount") / 7.0, 2))
+
+ranked_df = result_df.withColumn("rnk", F.dense_rank().over(Window.orderBy("visited_on"))) \
+    .filter("rnk >= 7") \
+    .select("visited_on", "amount", "average_amount") \
+    .orderBy("visited_on")

@@ -1,0 +1,13 @@
+to_date converts timestamp col type or string type date or timestamp col to date type
+
+from pyspark.sql import functions as F
+
+data = [("2021-04-29 13:28:30",), ("2021-04-30 08:47:25",)]
+df = spark.createDataFrame(data, ["timestamp_col"])
+
+# Convert to date
+result_df = df.withColumn("date_only", F.to_date("timestamp_col"))
+
+#default format (yyyy-MM-dd) if not specified
+
+result_df.show()

@@ -11,9 +11,11 @@ Table: OrdersDetails
 +-------------+------+
 (order_id, product_id) is the primary key for this table.
 A single order is represented as multiple rows, one row for each product in the order.
-Each row of this table contains the quantity ordered of the product product_id in the order order_id.
+Each row of this table contains the quantity ordered of the product
+ product_id in the order order_id.
 You are running an ecommerce site that is looking for imbalanced orders. 
-An imbalanced order is one whose maximum quantity is strictly greater than the average quantity of every order (including itself).
+An imbalanced order is one whose maximum quantity is strictly greater 
+than the average quantity of every order (including itself).
 
 The average quantity of an order is calculated as (total quantity of all products in the order) / (number of different products in the order). 
 The maximum quantity of an order is the highest quantity of any single product in the order.
@@ -77,65 +79,25 @@ WITH order_avg AS (
         MAX(quantity) AS max_qty
     FROM OrdersDetails
     GROUP BY order_id
+),
+global_max_avg AS (
+    SELECT MAX(avg_qty) AS max_avg FROM order_avg
 )
 SELECT order_id
-FROM order_avg
-WHERE max_qty > ALL (
-    SELECT avg_qty FROM order_avg
-);
+FROM order_avg, global_max_avg
+WHERE order_avg.max_qty > global_max_avg.max_avg;
 
 ------------------------------
 
-from pyspark.sql.functions import col, sum as _sum, countDistinct, max as _max
-
-order_avg_df = orders_df.groupBy("order_id").agg(
-    (_sum("quantity") / countDistinct("product_id")).alias("avg_qty"),
-    _max("quantity").alias("max_qty")
-)
-
-all_avg_list = order_avg_df.select("avg_qty").rdd.map(lambda row: row[0]).collect()
-
-result_df = order_avg_df.filter(
-    col("max_qty") > max(all_avg_list)
-).select("order_id")
-
-OR
-
 from pyspark.sql.functions import col, sum as _sum, countDistinct, max as _max, lit
 
-# Step 1: Compute per-order avg and max
 order_stats_df = orders_df.groupBy("order_id").agg(
     (_sum("quantity") / countDistinct("product_id")).alias("avg_qty"),
     _max("quantity").alias("max_qty")
 )
 
-# Step 2: Compute the global max avg_qty (scalar)
 max_avg_qty = order_stats_df.agg(_max("avg_qty")).first()[0]
 
-# Step 3: Filter orders where max_qty > global max avg_qty
-result_df = order_stats_df.filter(col("max_qty") > lit(max_avg_qty)).select("order_id")
-
-OR
-
-from pyspark.sql.functions import col, sum as _sum, countDistinct, max as _max
-from pyspark.sql.window import Window
-
-# Step 1: Compute per-order average and max quantity
-order_stats_df = orders_df.groupBy("order_id").agg(
-    (_sum("quantity") / countDistinct("product_id")).alias("avg_qty"),
-    _max("quantity").alias("max_qty")
-)
-
-# Step 2: Define window covering all rows (unbounded)
-global_window = Window.rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)
-
-# Step 3: Add a column with global max of avg_qty across all orders
-order_stats_df = order_stats_df.withColumn(
-    "global_max_avg",
-    _max("avg_qty").over(global_window)
-)
-
-# Step 4: Filter orders where max_qty > global_max_avg
-imbalanced_orders_df = order_stats_df.filter(
-    col("max_qty") > col("global_max_avg")
+result_df = order_stats_df.filter(
+    col("max_qty") > lit(max_avg_qty)
 ).select("order_id")

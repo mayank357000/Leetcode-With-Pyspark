@@ -9,6 +9,7 @@ Table: Employees
 | employee_name | varchar |
 | manager_id    | int     |
 +---------------+---------+
+
 employee_id is the primary key for this table.
 Each row of this table indicates that the employee with ID employee_id and name employee_name reports his work to his/her direct manager with manager_id
 The head of the company is the employee with employee_id = 1.

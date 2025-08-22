@@ -8,7 +8,7 @@ Table: UserVisits
 | visit_date  | date |
 +-------------+------+
 This table does not have a primary key.
-This table contains logs of the dates that users vistied a certain retailer.
+This table contains logs of the dates that users visited a certain retailer.
 
 Assume today's date is '2021-1-1'.
 
@@ -37,6 +37,7 @@ Result table:
 | 2       | 65            |
 | 3       | 51            |
 +---------+---------------+
+
 For the first user, the windows in question are between dates:
     - 2020-10-20 and 2020-11-28 with a total of 39 days.
     - 2020-11-28 and 2020-12-3 with a total of 5 days.
@@ -50,6 +51,8 @@ For the third user, the only window in question is
 between dates 2020-11-11 and 2021-1-1 with a total of 51 days.
 
 --------------------------------
+coalesce of lead to handle null value
+-------------------------------
 WITH cte AS (
   SELECT
     user_id,

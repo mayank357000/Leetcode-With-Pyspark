@@ -104,6 +104,7 @@ adjusted = salaries_df.join(
 ).withColumn(
     "salary",
     F.round(F.col("salary") * (1 - F.col("tax_rate"))).cast("int")
+    #double to int casting
 )
 
 result = adjusted.select(

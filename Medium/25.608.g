@@ -1,5 +1,6 @@
 608. Tree Node
-Given a table tree, id is identifier of the tree node and p_id is its parent node's id.
+Given a table tree, id is identifier of the 
+tree node and p_id is its parent node's id
 
 +----+------+
 | id | p_id |
@@ -10,12 +11,13 @@ Given a table tree, id is identifier of the tree node and p_id is its parent nod
 | 4  | 2    |
 | 5  | 2    |
 +----+------+
+
 Each node in the tree can be one of three types:
 Leaf: if the node is a leaf node.
 Root: if the node is the root of the tree.
 Inner: If the node is neither a leaf node nor a root node.
-
-Write a query to print the node id and the type of the node. Sort your output by the node id. The result for the above sample is:
+Write a query to print the node id and the type of the node. 
+Sort your output by the node id. The result for the above sample is:
 
 +----+------+
 | id | Type |
@@ -45,9 +47,10 @@ Note
 
 If there is only one node on the tree, you only need to output its root attributes.
 -----------------------------
-t1.id = t2.p_id, t1.id is child of t2.p_id which is id of t1, t1 is parent of t2.id
-we did this to get child of t1.id
+curent table se kya find krna chahte ho, agr child then current ko dusre table mai parent se dekho
+uski child id milegi usse
 -------------------------
+
 SELECT 
     t1.id,
     CASE 

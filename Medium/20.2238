@@ -51,7 +51,7 @@ The driver with ID = 11 was never a passenger.
 
 --------------------------
 SELECT d.driver_id, 
-       COALESCE(COUNT(r.passenger_id), 0) AS cnt
+       COUNT(r.passenger_id) AS cnt
 FROM (
     SELECT DISTINCT driver_id 
     FROM Rides
@@ -59,6 +59,8 @@ FROM (
 LEFT JOIN Rides r 
   ON d.driver_id = r.passenger_id
 GROUP BY d.driver_id;
+
+#count(count not null values ) and count(*)(count rows) never return null but 0
 
 OR
 
@@ -73,3 +75,28 @@ FROM (
     GROUP BY driver_id
 ) AS flags;
 --------------------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, count, coalesce
+
+spark = SparkSession.builder.getOrCreate()
+
+data = [
+    (1, 7, 1),
+    (2, 7, 2),
+    (3, 11, 1),
+    (4, 11, 7),
+    (5, 11, 7),
+    (6, 11, 3)
+]
+
+rides_df = spark.createDataFrame(data, ["ride_id", "driver_id", "passenger_id"])
+
+drivers_df = rides_df.select("driver_id").distinct()
+
+passenger_counts = rides_df.groupBy("passenger_id").agg(count("*").alias("cnt"))
+
+result = drivers_df.join(passenger_counts, drivers_df.driver_id == passenger_counts.passenger_id, "left") \
+                   .select(drivers_df.driver_id, coalesce(passenger_counts.cnt, col("cnt").cast("int")).alias("cnt"))
+
+result.show()

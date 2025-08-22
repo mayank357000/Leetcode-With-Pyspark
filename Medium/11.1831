@@ -9,6 +9,7 @@ Table: Transactions
 | day            | datetime |
 | amount         | int      |
 +----------------+----------+
+
 transaction_id is the primary key for this table.
 Each row contains information about one transaction.
 

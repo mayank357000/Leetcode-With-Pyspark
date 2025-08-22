@@ -85,6 +85,8 @@ orders_agg = orders_df.groupBy("customer_id").agg(
     F.sum(F.expr("product_name = 'B'")).alias("has_B"),
     F.sum(F.expr("product_name = 'C'")).alias("has_C")
 )
+#can either write a condition inside sum or use
+#F.sum(F.when(F.col("product_name") == "A", 1).otherwise(0)).alias("has_A")
 
 filtered = orders_agg.filter(
     (F.col("has_A") > 0) &

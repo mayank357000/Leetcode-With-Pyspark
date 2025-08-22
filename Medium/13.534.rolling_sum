@@ -69,6 +69,9 @@ result = activity_df.withColumn(
     "player_id", "event_date", "games_played_so_far"
 )
 
+#sum if used in window function should be used in withcol or select
+#else inside agg() after group by
+
 ------------------------
 For rolling sum we can do one more thing
 either self join and for each record we can get records mathced less than date to it 
