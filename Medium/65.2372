@@ -8,9 +8,9 @@ Table: Salesperson
 | salesperson_id | int     |
 | name           | varchar |
 +----------------+---------+
-salesperson_id is the primary key for this table.
-Each row in this table shows the ID of a salesperson.
- 
+
+salesperson_id is the primary key for this table
+Each row in this table shows the ID of a salesperson
 
 Table: Customer
 
@@ -20,11 +20,9 @@ Table: Customer
 | customer_id    | int  |
 | salesperson_id | int  |
 +----------------+------+
-customer_id is the primary key for this table.
-salesperson_id is a foreign key from the Salesperson table.
-Each row in this table shows the ID of a customer and the ID of the salesperson. 
-
- 
+customer_id is the primary key for this table
+salesperson_id is a foreign key from the Salesperson table
+Each row in this table shows the ID of a customer and the ID of the salesperson
 
 Table: Sales
 
@@ -39,14 +37,11 @@ sale_id is the primary key for this table.
 customer_id is a foreign key from the Customer table.
 Each row in this table shows ID of a customer and the price they paid for the sale with sale_id.
  
-
 Write an SQL query to report the sum of prices paid by the customers of each salesperson. If a salesperson does not have any customers, the total value should be 0.
 
 Return the result table in any order.
 
 The query result format is shown in the following example.
-
- 
 
 Example 1:
 

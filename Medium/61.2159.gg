@@ -9,16 +9,14 @@ Table: Data
 | first_col   | int  |
 | second_col  | int  |
 +-------------+------+
-There is no primary key for this table and it may contain duplicates.
- 
+
+There is no primary key for this table and it may contain duplicates
 
 Write an SQL query to independently:
 
-order first_col in ascending order.
-order second_col in descending order.
-The query result format is in the following example.
-
- 
+order first_col in ascending order
+order second_col in descending order
+The query result format is in the following example
 
 Example 1:
 

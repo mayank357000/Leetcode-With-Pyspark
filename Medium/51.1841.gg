@@ -30,7 +30,10 @@ away_team_goals is the number of goals scored by the away team.
 The winner of the match is the team with the higher number of goals.
  
 
-Write an SQL query to report the statistics of the league. The statistics should be built using the played matches where the winning team gets three points and the losing team gets no points. If a match ends with a draw, both teams get one point.
+Write an SQL query to report the statistics of the league. 
+The statistics should be built using the played matches 
+where the winning team gets three points and the losing team gets no points.
+If a match ends with a draw, both teams get one point.
 
 Each row of the result table should contain:
 
@@ -79,3 +82,44 @@ Ajax (team_id=1) played 4 matches: 2 losses and 2 draws. Total points = 0 + 0 + 
 Dortmund (team_id=4) played 2 matches: 2 wins. Total points = 3 + 3 = 6.
 Arsenal (team_id=6) played 2 matches: 2 draws. Total points = 1 + 1 = 2.
 Dortmund is the first team in the table. Ajax and Arsenal have the same points, but since Arsenal has a higher goal_diff than Ajax, Arsenal comes before Ajax in the table.
+
+-----------------------
+
+SELECT 
+    t.team_name,
+    COUNT(*) AS matches_played,
+    SUM(points) AS points,
+    SUM(goal_for) AS goal_for,
+    SUM(goal_against) AS goal_against,
+    SUM(goal_for) - SUM(goal_against) AS goal_diff
+FROM (
+    SELECT 
+        home_team_id AS team_id,
+        CASE 
+            WHEN home_team_goals > away_team_goals THEN 3
+            WHEN home_team_goals = away_team_goals THEN 1
+            ELSE 0
+        END AS points,
+        home_team_goals AS goal_for,
+        away_team_goals AS goal_against
+    FROM Matches
+
+    UNION ALL
+
+    SELECT 
+        away_team_id AS team_id,
+        CASE 
+            WHEN away_team_goals > home_team_goals THEN 3
+            WHEN away_team_goals = home_team_goals THEN 1
+            ELSE 0
+        END AS points,
+        away_team_goals AS goal_for,
+        home_team_goals AS goal_against
+    FROM Matches
+) AS stats
+JOIN Teams t ON t.team_id = stats.team_id
+GROUP BY t.team_id, t.team_name
+ORDER BY 
+    points DESC,
+    goal_diff DESC,
+    team_name ASC;

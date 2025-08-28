@@ -71,6 +71,7 @@ print(next(g))  # 1
 
 
 🔹 Example: Python Decorator
+#takess our func as input and returns a wrapper function, and this called when that func is called
 def decorator(func):
     def wrapper():
         print("Before")

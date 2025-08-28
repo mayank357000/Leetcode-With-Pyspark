@@ -7,6 +7,7 @@ Table: Genders
 | user_id     | int     |
 | gender      | varchar |
 +-------------+---------+
+
 user_id is the primary key (column with unique values) for this table.
 gender is ENUM (category) of type 'female', 'male', or 'other'.
 Each row in this table contains the ID of a user and their gender.
@@ -17,8 +18,6 @@ Write a solution to rearrange the Genders table such that the rows alternate bet
 Return the result table in the mentioned order.
 
 The result format is shown in the following example.
-
- 
 
 Example 1:
 

@@ -9,6 +9,7 @@ Table: Users
 | join_date      | date    |
 | favorite_brand | varchar |
 +----------------+---------+
+
 user_id is the primary key (column with unique values) of this table.
 This table has the info of the users of an online shopping 
 website where users can sell and buy items.
@@ -38,7 +39,8 @@ Table: Items
 +---------------+---------+
 item_id is the primary key (column with unique values) of this table.
 
-Write a solution to find for each user, the join date and the number of orders they made as a buyer in 2019.
+Write a solution to find for each user, 
+the join date and the number of orders they made as a buyer in 2019.
 
 Return the result table in any order.
 
@@ -76,6 +78,7 @@ Items table:
 | 3       | LG         |
 | 4       | HP         |
 +---------+------------+
+
 Output: 
 +-----------+------------+----------------+
 | buyer_id  | join_date  | orders_in_2019 |
@@ -97,7 +100,7 @@ LEFT JOIN Orders o
     ON u.user_id = o.buyer_id AND YEAR(o.order_date) = 2019
 GROUP BY u.user_id, u.join_date;
 
-#count(*) and count(col) ignore null and return 0 if only nulls
+#count(*) count rows, and count(col) ignore null and return 0 if only nulls
 ------------------------------------
 
 from pyspark.sql import functions as F

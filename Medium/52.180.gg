@@ -41,7 +41,8 @@ Output:
 Explanation: 1 is the only number that appears consecutively for at least three times.
 
 --------------------------------------
-here this is not our rownumber based question bro, id-num can be same for many
+Row number owrks only only the item/val is also increasing 
+same number ke liye not work
 -----------------------------------
 
 SELECT DISTINCT L1.num AS ConsecutiveNums

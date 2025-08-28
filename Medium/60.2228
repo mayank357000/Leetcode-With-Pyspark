@@ -9,10 +9,13 @@ Table: Purchases
 | user_id       | int  |
 | purchase_date | date |
 +---------------+------+
-purchase_id is the primary key for this table.
+
+purchase_id is the primary key for this table
+
 This table contains logs of the dates that users purchased from a certain retailer.
 
-Write an SQL query to report the IDs of the users that made any two purchases at most 7 days apart.
+Write an SQL query to report the IDs of the users that made any two purchases 
+at most 7 days apart.
 
 Return the result table ordered by user_id.
 

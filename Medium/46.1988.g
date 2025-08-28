@@ -77,8 +77,32 @@ Output:
 | 10        | 749   |
 | 11        | 744   |
 +-----------+-------+
+
 Explanation: 
 - School 5: The school's capacity is 48. Choosing 975 as the min score requirement, the school will get at most 10 applications, which is within capacity.
 - School 10: The school's capacity is 99. Choosing 844 or 749 as the min score requirement, the school will get at most 76 applications, which is within capacity. We choose the smallest of them, which is 749.
 - School 11: The school's capacity is 151. Choosing 744 as the min score requirement, the school will get at most 100 applications, which is within capacity.
 - School 9: The data given is not enough to determine the min score requirement. Choosing 975 as the min score, the school may get 10 requests while its capacity is 9. We do not have information about higher scores, hence we report -1.
+
+--------------------
+just capacity>=students possible if not then -1 
+----------------------
+
+SELECT 
+    s.school_id,
+    COALESCE(MIN(e.score), -1) AS score
+FROM Schools s
+LEFT JOIN Exam e
+    ON s.capacity >= e.student_count
+GROUP BY s.school_id;
+
+------------------------
+
+from pyspark.sql.functions import col, min, coalesce
+from pyspark.sql import Window
+
+joined = schools.join(exam, schools.capacity >= exam.student_count, "left")
+
+result = joined.groupBy("school_id").agg(
+    coalesce(min("score"), lit(-1)).alias("score")
+)

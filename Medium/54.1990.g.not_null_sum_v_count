@@ -1,6 +1,4 @@
 1990. Count the Number of Experiments
-Level
-Easy
 
 Description
 Table: Experiments
@@ -15,8 +13,14 @@ Table: Experiments
 experiment_id is the primary key for this table.
 platform is an enum with one of the values ('Android', 'IOS', 'Web').
 experiment_name is an enum with one of the values ('Reading', 'Sports', 'Programming').
-This table contains information about the ID of an experiment done with a random person, the platform used to do the experiment, and the name of the experiment.
-Write an SQL query to report the number of experiments done on each of the three platforms for each of the three given experiments. Notice that all the pairs of (platform, experiment) should be included in the output including the pairs with zero experiments.
+This table contains information about the 
+ID of an experiment done with a random person, 
+the platform used to do the experiment, and the name of the experiment.
+Write an SQL query to report 
+the number of experiments done on each of the three platforms 
+for each of the three given experiments. 
+Notice that all the pairs of (platform, experiment) 
+should be included in the output including the pairs with zero experiments.
 
 Return the result table in any order.
 

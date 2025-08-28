@@ -7,6 +7,7 @@ Table Variables:
 | name          | varchar |
 | value         | int     |
 +---------------+---------+
+
 name is the primary key for this table.
 This table contains the stored variables and their values.
 
@@ -19,6 +20,7 @@ Table Expressions:
 | operator      | enum    |
 | right_operand | varchar |
 +---------------+---------+
+
 (left_operand, operator, right_operand) 
 is the primary key for this table.
 This table contains a boolean expression 

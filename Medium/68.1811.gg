@@ -10,6 +10,7 @@ Table: Contests
 | silver_medal | int  |
 | bronze_medal | int  |
 +--------------+------+
+
 contest_id is the primary key for this table.
 This table contains the LeetCode contest ID and the user IDs of the gold, silver, and bronze medalists.
 It is guaranteed that any consecutive contests have consecutive IDs and that no ID is skipped.

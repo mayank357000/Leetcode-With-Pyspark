@@ -47,8 +47,10 @@ The Output should be:
 | Science     | 1              |
 | Law         | 0              |
 -----------------------------------
-count(col) works for not null values, even after that if nulls then returns 0, max min return null
+count(col) works for not null values, 
+even after that if nulls then returns 0, max min return null
 ---------------------------
+
 SELECT 
     Department.dept_name,
     COUNT(Student.student_id) AS student_number

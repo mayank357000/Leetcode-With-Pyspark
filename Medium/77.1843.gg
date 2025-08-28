@@ -8,6 +8,7 @@ Table: Accounts
 | account_id     | int  |
 | max_income     | int  |
 +----------------+------+
+
 account_id is the primary key for this table.
 Each row contains information about the
 maximum monthly income for one bank account.
@@ -23,6 +24,7 @@ Table: Transactions
 | amount         | int      |
 | day            | datetime |
 +----------------+----------+
+
 transaction_id is the primary key for this table.
 Each row contains information about one transaction.
 type is ENUM ('Creditor','Debtor') where 'Creditor' means the user deposited money into their account and 'Debtor' means the user withdrew money from their account.

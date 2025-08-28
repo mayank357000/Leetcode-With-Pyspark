@@ -46,6 +46,7 @@ Output:
 +------------+-------+
 
 ------------------------------------------------
+change date after that don't matter
 there can be some records which are only after
 16 having changing price so their val should be 10
 ------------------------------------------------

@@ -8,10 +8,11 @@ Table: Employees
 | employee_id  | int  |
 | needed_hours | int  |
 +--------------+------+
-employee_id is the primary key for this table.
-Each row contains the id of an employee and the minimum number of hours needed for them to work to get their salary.
- 
 
+employee_id is the primary key for this table.
+Each row contains the id of an employee and 
+the minimum number of hours needed for them to work to get their salary.
+ 
 Table: Logs
 
 +-------------+----------+

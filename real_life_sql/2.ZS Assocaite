@@ -3,7 +3,7 @@ Find all users who have logged in for at least 3 consecutive days
 at any time (show user_id and first day of such a streak).
 
 ----------------------
-row number-consecutive seq lead to same number which can be used for group by
+row number-consecutive increasing seq lead to same number which can be used for group by
 -----------------------
 
 WITH dated_logins AS (

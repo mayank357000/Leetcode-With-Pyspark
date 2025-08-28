@@ -8,8 +8,10 @@ Table: Friendship
 | user1_id      | int     |
 | user2_id      | int     |
 +---------------+---------+
+
 (user1_id, user2_id) is the primary key for this table.
-Each row of this table indicates that there is a friendship relation between user1_id and user2_id.
+Each row of this table indicates that there is a friendship 
+relation between user1_id and user2_id.
  
 Table: Likes
 
@@ -19,11 +21,13 @@ Table: Likes
 | user_id     | int     |
 | page_id     | int     |
 +-------------+---------+
+
 (user_id, page_id) is the primary key for this table.
 Each row of this table indicates that user_id likes page_id.
- 
 
-Write an SQL query to recommend pages to the user with user_id = 1 using the pages that your friends liked. It should not recommend pages you already liked.
+Write an SQL query to recommend pages to the user with user_id = 1 
+using the pages that your friends liked. 
+It should not recommend pages you already liked.
 
 Return result table in any order without duplicates.
 
@@ -105,8 +109,6 @@ WITH friends AS (
     SELECT user1_id AS friend_id FROM Friendship WHERE user2_id = 1
 )
 
-#can user left join and null on left 
-
 SELECT DISTINCT l.page_id AS recommended_page
 FROM Likes l
 JOIN (
@@ -117,38 +119,29 @@ JOIN (
 LEFT JOIN Likes ul ON ul.user_id = 1 AND ul.page_id = l.page_id
 WHERE ul.page_id IS NULL;
 ----------------------------
-#can use semi join to replicate the same 
 
-# Get friends of user 1
 friends_df = friendship_df \
     .filter(col("user1_id") == 1).select(col("user2_id").alias("friend_id")) \
     .unionAll(friendship_df.filter(col("user2_id") == 1).select(col("user1_id").alias("friend_id")))
 
-# Pages liked by friends
 friend_likes_df = friends_df.join(likes_df, friends_df.friend_id == likes_df.user_id).select("page_id").distinct()
 
-# Pages liked by user 1
 user_likes_df = likes_df.filter(col("user_id") == 1).select("page_id")
 
-# Recommend pages not yet liked by user 1
 recommended_df = friend_likes_df.join(user_likes_df, on="page_id", how="left_anti")
 ----------------
 from pyspark.sql.functions import when
 
-# Tag likes: friend vs user 1
 likes_tagged_df = likes_df.withColumn(
     "is_user1", when(col("user_id") == 1, 1).otherwise(0)
 )
 
-# Get friends of user 1
 friends_df = friendship_df \
     .filter(col("user1_id") == 1).select(col("user2_id").alias("friend_id")) \
     .unionAll(friendship_df.filter(col("user2_id") == 1).select(col("user1_id").alias("friend_id")))
 
-# Likes by friends
 friend_likes_df = friends_df.join(likes_tagged_df, friends_df.friend_id == likes_tagged_df.user_id)
 
-# Filter out pages liked by user 1
 recommended_df = friend_likes_df.filter(col("is_user1") == 0).select("page_id").distinct()
 
 --------------------

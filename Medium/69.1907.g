@@ -7,6 +7,7 @@ Table: Accounts
 | account_id  | int  |
 | income      | int  |
 +-------------+------+
+
 account_id is the primary key (column with unique values) for this table.
 Each row contains information about the monthly income for one bank account.
 

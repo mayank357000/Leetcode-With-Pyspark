@@ -75,7 +75,7 @@ else:
 OR 
 
 
-max_salary = df.agg(spark_max("salary")).collect()[0][0]
+max_salary = df.agg(spark_max("salary")).collect()[0][0] /[0]["max"]
 
 # Filter salaries less than max, then get max of those
 second_highest_df = df.filter(col("salary") < max_salary).agg(

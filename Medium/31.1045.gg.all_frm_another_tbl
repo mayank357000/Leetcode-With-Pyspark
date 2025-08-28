@@ -11,7 +11,6 @@ Table: Customer
 This table may contain duplicates rows. 
 customer_id is not NULL.
 product_key is a foreign key (reference column) to Product table.
- 
 
 Table: Product
 

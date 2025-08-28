@@ -9,8 +9,12 @@ Table: TeamPoints
 | name        | varchar |
 | points      | int     |
 +-------------+---------+
+
 team_id is the primary key for this table.
-Each row of this table contains the ID of a national team, the name of the country it represents, and the points it has in the global rankings. No two teams will represent the same country.
+Each row of this table contains the ID of a national team, 
+the name of the country it represents, and 
+the points it has in the global rankings.
+No two teams will represent the same country.
  
 Table: PointsChange
 
