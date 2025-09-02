@@ -1,0 +1,93 @@
+3050. Pizza Toppings Cost Analysis
+Description
+Table: Toppings
+
++--------------+---------+ 
+\| Column Name  \| Type    \| 
++--------------+---------+ 
+\| topping_name \| varchar \| 
+\| cost         \| decimal \|
++--------------+---------+
+topping_name is the primary key for this table.
+Each row of this table contains topping name and the cost of the topping. 
+Write a solution to calculate the total cost of all possible 3-topping pizza combinations from a given list of toppings. The total cost of toppings must be rounded to 2 decimal places.
+
+Note:
+
+Do not include the pizzas where a topping is repeated. For example, ‘Pepperoni, Pepperoni, Onion Pizza’.
+Toppings must be listed in alphabetical order. For example, 'Chicken, Onions, Sausage'. 'Onion, Sausage, Chicken' is not acceptable.
+Return the result table ordered by total cost in descending order and combination of toppings in ascending order.
+
+The result format is in the following example.
+
+Example 1:
+
+Input: 
+Toppings table:
++--------------+------+
+\| topping_name \| cost \|
++--------------+------+
+\| Pepperoni    \| 0.50 \|
+\| Sausage      \| 0.70 \|
+\| Chicken      \| 0.55 \|
+\| Extra Cheese \| 0.40 \|
++--------------+------+
+Output: 
++--------------------------------+------------+
+\| pizza                          \| total_cost \| 
++--------------------------------+------------+
+\| Chicken,Pepperoni,Sausage      \| 1.75       \|  
+\| Chicken,Extra Cheese,Sausage   \| 1.65       \|
+\| Extra Cheese,Pepperoni,Sausage \| 1.60       \|
+\| Chicken,Extra Cheese,Pepperoni \| 1.45       \| 
++--------------------------------+------------+
+Explanation: 
+There are only four different combinations possible with the three topings:
+- Chicken, Pepperoni, Sausage: Total cost is $1.75 (Chicken $0.55, Pepperoni $0.50, Sausage $0.70).
+- Chicken, Extra Cheese, Sausage: Total cost is $1.65 (Chicken $0.55, Extra Cheese $0.40, Sausage $0.70).
+- Extra Cheese, Pepperoni, Sausage: Total cost is $1.60 (Extra Cheese $0.40, Pepperoni $0.50, Sausage $0.70).
+- Chicken, Extra Cheese, Pepperoni: Total cost is $1.45 (Chicken $0.55, Extra Cheese $0.40, Pepperoni $0.50).
+Output table is ordered by the total cost in descending order.
+
+---------------------
+#can use rownumber too to give order, but string comparison works too
+#also can use concat 
+
+SELECT
+    CONCAT(t1.topping_name, ',', t2.topping_name, ',', t3.topping_name) AS pizza,
+    ROUND(t1.cost + t2.cost + t3.cost, 2) AS total_cost
+FROM Toppings t1
+JOIN Toppings t2 ON t1.topping_name < t2.topping_name
+JOIN Toppings t3 ON t2.topping_name < t3.topping_name
+ORDER BY total_cost DESC, pizza ASC;
+
+--------------------------
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, concat_ws, round
+
+spark = SparkSession.builder.getOrCreate()
+
+data = [
+    ("Pepperoni", 0.50),
+    ("Sausage", 0.70),
+    ("Chicken", 0.55),
+    ("Extra Cheese", 0.40)
+]
+df = spark.createDataFrame(data, ["topping_name", "cost"])
+
+df1 = df.alias("t1")
+df2 = df.alias("t2")
+df3 = df.alias("t3")
+
+combo_df = (
+    df1.join(df2, col("t1.topping_name") < col("t2.topping_name"))
+       .join(df3, col("t2.topping_name") < col("t3.topping_name"))
+       .select(
+           concat_ws(",", col("t1.topping_name"), col("t2.topping_name"), col("t3.topping_name")).alias("pizza"),
+           round(col("t1.cost") + col("t2.cost") + col("t3.cost"), 2).alias("total_cost")
+       )
+       .orderBy(col("total_cost").desc(), col("pizza").asc())
+)
+
+combo_df.show(truncate=False)

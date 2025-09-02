@@ -1,0 +1,21 @@
+"Write a SQL query to find the top 3 most frequently
+used hashtags in tweets posted during the month of February.
+ Each tweet may contain zero or more hashtags, and 
+ hashtags begin with the '#' symbol. Extract only the
+  first hashtag from each tweet (if present), count 
+  its occurrences, and return the top 3 hashtags 
+  sorted by their frequency in descending order. 
+  If two hashtags have the same frequency, 
+  sort them in descending lexicographical order."
+
+SELECT
+  CONCAT(
+    '#',
+    SUBSTRING_INDEX(SUBSTRING_INDEX(tweet, '#', -1), ' ', 1)
+  ) AS hashtag,
+  COUNT(*) AS hashtag_count
+FROM Tweets
+WHERE MONTH(tweet_date) = 2
+GROUP BY hashtag
+ORDER BY hashtag_count DESC, hashtag DESC
+LIMIT 3;

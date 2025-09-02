@@ -1,0 +1,45 @@
+3252. Premier League Table Ranking II 🔒
+Description
+Table: TeamStats
+
++++
+\| team_id          \| int     \|
+\| team_name        \| varchar \|
+\| matches_played   \| int     \|
+\| wins             \| int     \|
+\| draws            \| int     \|
+\| losses           \| int     \|
++++-++-++-+-+-+-+---+
+Explanation:
+
+Sheffield United has 56 points (18 wins * 3 points + 2 draws * 1 point) and is in position 1.
+Fulham has 55 points (18 wins * 3 points + 1 draw * 1 point) and is in position 2.
+Newcastle United has 43 points (11 wins * 3 points + 10 draws * 1 point) and is in position 3.
+Chelsea has 41 points (13 wins * 3 points + 2 draws * 1 point) and is in position 4.
+Burnley has 27 points (6 wins * 3 points + 9 draws * 1 point) and is in position 5.
+Nottingham Forest has 24 points (6 wins * 3 points + 6 draws * 1 point) and is in position 6.
+Everton and Luton Town both have 12 points, with Everton having 2 wins * 3 points + 6 draws * 1 point, and Luton Town having 4 wins * 3 points. Both teams share position 7.
+Liverpool has 11 points (1 win * 3 points + 8 draws * 1 point) and is in position 9.
+Aston Villa has 9 points (1 win * 3 points + 6 draws * 1 point) and is in position 10.
+
+Tier Calculation:
+
+Tier 1: The top 33% of teams based on points. Sheffield United, Fulham, Newcastle United, and Chelsea fall into Tier 1.
+Tier 2: The middle 33% of teams. Burnley, Nottingham Forest, Everton, and Luton Town fall into Tier 2.
+Tier 3: The bottom 34% of teams. Liverpool and Aston Villa fall into Tier 3.
+
+--------------------------------
+
+WITH cte AS (
+    SELECT *,
+           wins * 3 + draws * 1 AS points,
+           PERCENT_RANK() OVER (ORDER BY wins * 3 + draws * 1 DESC) AS percent_rank
+    FROM TeamStats
+)
+SELECT *,
+       CASE 
+           WHEN percent_rank <= 0.33 THEN 'Tier 1'
+           WHEN percent_rank <= 0.66 THEN 'Tier 2'
+           ELSE 'Tier 3'
+       END AS Tier
+FROM cte;

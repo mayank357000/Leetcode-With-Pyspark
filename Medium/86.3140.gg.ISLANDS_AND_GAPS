@@ -1,0 +1,91 @@
+3140. Consecutive Available Seats II 🔒
+Description
+Table: Cinema
+
++-++
+\| Column Name \| Type \|
++-++
+\| seat_id     \| int  \|
+\| free        \| bool \|
++-++
+seat_id is an auto-increment column for this table.
+Each row of this table indicates whether the ith seat is free or not. 1 means free while 0 means occupied.
+Write a solution to find the length of longest consecutive sequence of available seats in the cinema.
+
+Note:
+
+There will always be at most one longest consecutive sequence.
+If there are multiple consecutive sequences with the same length, include all of them in the output.
+Return the result table ordered by first_seat_id in ascending order.
+
+
+The result format is in the following example.
+
+Example:
+
+Input:
+
+Cinema table:
+
++++
+\| 1       \| 1    \|
+\| 2       \| 0    \|
+\| 3       \| 1    \|
+\| 4       \| 1    \|
+\| 5       \| 1    \|
++--+--+
+\| first_seat_id   \| last_seat_id   \| consecutive_seats_len \|
++-+--+--+
+Explanation:
+
+Longest consecutive sequence of available seats starts from seat 3 and ends at seat 5 with a length of 3.
+Output table is ordered by first_seat_id in ascending order.
+
+---------------------------
+first get only 1s having numbers , then use cont increaaing seq and rownumber diff, max min for first last, else count for len
+
+10 1      9
+11 2      9
+12 3      9 
+13 4      9
+17 5      9
+18 6
+--------------------
+
+
+WITH free_seats AS ( #this step was important and diff
+    SELECT *
+    FROM Cinema
+    WHERE free = 1
+),
+grouped AS (
+    SELECT
+        seat_id,
+        seat_id - ROW_NUMBER() OVER (ORDER BY seat_id) AS grp
+    FROM free_seats
+),
+islands AS (
+    SELECT
+        MIN(seat_id) AS first_seat_id,
+        MAX(seat_id) AS last_seat_id,
+        COUNT(*) AS consecutive_seats_len
+    FROM grouped
+    GROUP BY grp
+),
+max_len AS (
+    SELECT MAX(consecutive_seats_len) AS max_len FROM islands
+)
+SELECT
+    first_seat_id,
+    last_seat_id,
+    consecutive_seats_len
+FROM islands
+JOIN max_len ON consecutive_seats_len = max_len
+ORDER BY first_seat_id;
+
+$$$$$$$$$$$$$$$$$$FOLLOW UP 
+if only os and 1s then what?
+then make seat_id or intial rownumber
+then becomes same question
+filter the 1s
+and make another rownumber and get diff
