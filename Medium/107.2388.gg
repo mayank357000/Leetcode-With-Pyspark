@@ -1,0 +1,100 @@
+2388. Change Null Values in a Table to the Previous Value
+Description
+Table: CoffeeShop
+
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| id          | int     |
+| drink       | varchar |
++-------------+---------+
+id is the primary key for this table.
+Each row in this table shows the order id and the name of the drink ordered. Some drink rows are nulls.
+
+Write an SQL query to replace the null values of drink with the name of the drink of the previous row that is not null. It is guaranteed that the drink of the first row of the table is not null.
+
+Return the result table in the same order as the input.
+
+The query result format is shown in the following example.
+
+Example 1:
+
+Input: 
+CoffeeShop table:
++----+------------------+
+| id | drink            |
++----+------------------+
+| 9  | Mezcal Margarita |
+| 6  | null             |
+| 7  | null             |
+| 3  | Americano        |
+| 1  | Daiquiri         |
+| 2  | null             |
++----+------------------+
+Output: 
++----+------------------+
+| id | drink            |
++----+------------------+
+| 9  | Mezcal Margarita |
+| 6  | Mezcal Margarita |
+| 7  | Mezcal Margarita |
+| 3  | Americano        |
+| 1  | Daiquiri         |
+| 2  | Daiquiri         |
++----+------------------+
+
+Explanation: 
+For ID 6, the previous value that is not null is from ID 9. We replace the null with "Mezcal Margarita".
+For ID 7, the previous value that is not null is from ID 9. We replace the null with "Mezcal Margarita".
+For ID 2, the previous value that is not null is from ID 1. We replace the null with "Daiquiri".
+Note that the rows in the output are the same as in the input.
+
+--------------------------------
+
+LAST_VALUE(drink IGNORE NULLS) OVER (
+  ORDER BY id
+  ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+)
+
+---------------------------
+
+WITH Ranked AS (
+  SELECT id, drink
+  FROM CoffeeShop
+),
+NonNulls AS (
+  SELECT id, drink
+  FROM CoffeeShop
+  WHERE drink IS NOT NULL
+),
+Joined AS (
+  SELECT
+    r.id AS orig_id,
+    r.drink AS orig_drink,
+    n.id AS source_id,
+    n.drink AS source_drink,
+    ROW_NUMBER() OVER (
+      PARTITION BY r.id
+      ORDER BY n.id DESC
+    ) AS rn
+  FROM Ranked r
+  JOIN NonNulls n
+    ON r.id > n.id
+),
+Resolved AS (
+  SELECT
+    orig_id AS id,
+    COALESCE(orig_drink, source_drink) AS drink
+  FROM Joined
+  WHERE rn = 1
+
+  UNION
+
+  -- Include rows that were already non-null and had no join
+  SELECT id, drink
+  FROM CoffeeShop
+  WHERE drink IS NOT NULL
+)
+SELECT *
+FROM Resolved
+ORDER BY id;

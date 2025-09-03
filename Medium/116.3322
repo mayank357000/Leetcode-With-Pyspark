@@ -1,0 +1,35 @@
+3322. Premier League Table Ranking III 🔒
+Description
+Table: SeasonStats
+
++++
+\| season_id        \| int     \|
+\| team_id          \| int     \|
+\| team_name        \| varchar \|
+\| matches_played   \| int     \|
+\| wins             \| int     \|
+\| draws            \| int     \|
+\| losses           \| int     \|
+\| goals_for        \| int     \|
+\| goals_against    \| int     \|
++++-+--++-+--++-+--++-+--+-+
+\| season_id  \| team_id \| team_name \| points \| goal_difference \| position \|
+++--++-+--+-+
+
+Explanation:
+
+For the 2021 season:
+Manchester City has 93 points (29 * 3 + 6 * 1) and a goal difference of 73 (99 - 26).
+Liverpool has 92 points (28 * 3 + 8 * 1) and a goal difference of 68 (94 - 26).
+Chelsea has 74 points (21 * 3 + 11 * 1) and a goal difference of 43 (76 - 33).
+Tottenham has 71 points (22 * 3 + 5 * 1) and a goal difference of 29 (69 - 40).
+Arsenal has 69 points (22 * 3 + 3 * 1) and a goal difference of 13 (61 - 48).
+For the 2022 season:
+Manchester City has 89 points (28 * 3 + 5 * 1) and a goal difference of 61 (94 - 33).
+Arsenal has 84 points (26 * 3 + 6 * 1) and a goal difference of 45 (88 - 43).
+Manchester United has 75 points (23 * 3 + 6 * 1) and a goal difference of 15 (58 - 43).
+Newcastle has 71 points (19 * 3 + 14 * 1) and a goal difference of 35 (68 - 33).
+Liverpool has 67 points (19 * 3 + 10 * 1) and a goal difference of 28 (75 - 47).
+The teams are ranked first by points, then by goal difference, and finally by team name.
+The output is ordered by season_id ascending, then by rank ascending, and 
+finally by team_name ascending.

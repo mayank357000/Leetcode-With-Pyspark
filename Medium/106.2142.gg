@@ -13,7 +13,6 @@ bus_id is the column with unique values for this table
 Each row of this table contains information about the arrival time
 of a bus at the LeetCode station
 No two buses will arrive at the same time
- 
 
 Table: Passengers
 
@@ -23,12 +22,16 @@ Table: Passengers
 | passenger_id | int  |
 | arrival_time | int  |
 +--------------+------+
-passenger_id is the column with unique values for this table.
-Each row of this table contains information about the arrival time of a passenger at the LeetCode station.
- 
 
-Buses and passengers arrive at the LeetCode station. If a bus arrives at the station at time tbus and a passenger arrived at time tpassenger where tpassenger <= tbus and the passenger did not catch any bus, the passenger will use that bus.
+passenger_id is the column with unique values for this table  
 
+Each row of this table contains information about the arrival
+time of a passenger at the LeetCode station
+
+Buses and passengers arrive at the LeetCode station. If a bus
+arrives at the station at time tbus and a passenger arrived at 
+time tpassenger where tpassenger <= tbus and the passenger did 
+not catch any bus, the passenger will use that bus
 
 Write a solution to report the number of users that used each bus.
 
@@ -76,3 +79,35 @@ Explanation:
 - Passenger 13 arrives at time 6.
 - Passenger 14 arrives at time 7.
 - Bus 3 arrives at time 7 and collects passengers 12, 13, and 14.
+
+------------------
+find the first bus whose arrival_time>=passenger time
+and then count number passenger per bus
+and then left join with bus table for getting 0 counts too
+--------------------------
+
+with assigned as (
+    select p.passenger_id,b.bus_id,
+    row_number() over (
+        partition by p.passenger_id
+        order by b.arrival_time
+    ) as row_number
+    from passengers p
+    join buses bus
+        on p.arrival_time<=b.arrival_time
+),
+boarded as(
+    select bus_id from assigned where rn=1
+),
+passengerscounts as (
+    select bus_id,count(*) as passengers_cnt
+    from boarded 
+    group by bus_id
+)
+select 
+    b.bus_id,
+    coalesce(pc.passengers_cnt,0) as passengers_cnt
+from buses b
+left join passengercounts pc
+    on b.bus_id = pc.bus_id
+order by b.bus_id;
